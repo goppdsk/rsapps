@@ -1,14 +1,14 @@
+use crate::domains::entities::user::User;
 use crate::domains::errors::{ApplicationError, ErrorCode};
-use crate::domains::models::user::User;
+use crate::State;
 use juniper::http::{graphiql, GraphQLRequest, GraphQLResponse};
 use juniper::{
     Context, EmptyMutation, EmptySubscription, FieldError, IntoFieldError, RootNode, ScalarValue,
 };
 use lazy_static::lazy_static;
 use std::convert::AsRef;
-use std::sync::{Arc, RwLock};
 use tide::http::mime;
-use tide::{Body, Redirect, Request, Response, Server, StatusCode};
+use tide::{Body, Request, Response, StatusCode};
 
 impl<S: ScalarValue> IntoFieldError<S> for ApplicationError {
     fn into_field_error(self) -> FieldError<S> {
@@ -54,12 +54,9 @@ impl User {
     }
 }
 
-#[derive(Clone)]
-pub struct State {}
-
 impl Context for State {}
 
-pub struct QueryRoot;
+struct QueryRoot;
 
 #[graphql_object(Context = State)]
 impl QueryRoot {
@@ -75,13 +72,13 @@ impl QueryRoot {
     }
 }
 
-pub type Schema = RootNode<'static, QueryRoot, EmptyMutation<State>, EmptySubscription<State>>;
+type Schema = RootNode<'static, QueryRoot, EmptyMutation<State>, EmptySubscription<State>>;
 lazy_static! {
     static ref SCHEMA: Schema =
         Schema::new(QueryRoot {}, EmptyMutation::new(), EmptySubscription::new());
 }
 
-async fn handle_graphql(mut request: Request<State>) -> tide::Result {
+pub async fn handle_graphql(mut request: Request<State>) -> tide::Result {
     let query: GraphQLRequest = request.body_json().await?;
     let response: GraphQLResponse = query.execute(&SCHEMA, request.state()).await;
     let status = if response.is_ok() {
@@ -95,16 +92,8 @@ async fn handle_graphql(mut request: Request<State>) -> tide::Result {
         .build())
 }
 
-async fn handle_graphiql(_: Request<State>) -> tide::Result<impl Into<Response>> {
+pub async fn handle_graphiql(_: Request<State>) -> tide::Result<impl Into<Response>> {
     Ok(Response::builder(200)
         .body(graphiql::graphiql_source("/graphql", None))
         .content_type(mime::HTML))
-}
-
-pub fn create_graphql_server() -> Server<State> {
-    let mut app = Server::with_state(State {});
-    app.at("/").get(Redirect::permanent("/graphiql"));
-    app.at("/graphql").post(handle_graphql);
-    app.at("/graphiql").get(handle_graphiql);
-    app
 }
