@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "yewapp", # Yew application
+  "webserver", # Yew application
+  "commons", # Commons
+]

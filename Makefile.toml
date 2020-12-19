@@ -1,0 +1,14 @@
+[config]
+default_to_workspace = false
+min_version = "0.32.9"
+
+[config.modify_core_tasks]
+namespace = "core"
+private = true
+
+[tasks.lint]
+dependencies = ["core::check-format-flow", "core::clippy-flow"]
+workspace = true
+
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
