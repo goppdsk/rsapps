@@ -38,7 +38,7 @@ struct Claims {
 const BEARER: &str = "Bearer";
 
 lazy_static! {
-    static ref JWT_SECRET: String = env::var("JWT_TOKEN").unwrap();
+    static ref JWT_SECRET: String = env::var("JWT_SECRET").unwrap();
 }
 
 fn create_jwt(uid: i32) -> ApplicationResult<String> {
@@ -97,7 +97,7 @@ async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
         db: create_pool(5, db_connections).await?,
     });
     let mut app = Server::with_state(State {
-        user_service: UserService { di_container },
+        user_service: UserService::new(di_container),
     });
     app.at("/").get(Redirect::permanent("/graphiql"));
     app.at("/graphql").post(handle_graphql);

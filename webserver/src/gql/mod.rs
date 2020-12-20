@@ -16,20 +16,12 @@ use tide::{Body, Request, Response, StatusCode};
 impl<S: ScalarValue> IntoFieldError<S> for ApplicationError {
     fn into_field_error(self) -> FieldError<S> {
         let code = self.code.as_ref();
-        match self.code {
-            ErrorCode::SystemError => FieldError::new(
-                self.message,
-                graphql_value!({
-                  "code": code,
-                }),
-            ),
-            _ => FieldError::new(
-                "Un exptected error is occured",
-                graphql_value!({
-                  "code": "UnExptected",
-                }),
-            ),
-        }
+        FieldError::new(
+            self.message,
+            graphql_value!({
+              "code": code,
+            }),
+        )
     }
 }
 

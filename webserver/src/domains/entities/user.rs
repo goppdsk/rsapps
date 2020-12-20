@@ -11,7 +11,7 @@ pub struct User {
 }
 
 impl User {
-    fn valid_password(&self, password: String) -> bool {
+    pub fn valid_password(&self, password: String) -> bool {
         let hash = match self.password_hash.as_ref() {
             Some(hash) => hash,
             None => return false,

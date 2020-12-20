@@ -1,6 +1,4 @@
 use crate::domains::entities::user::User;
-use crate::domains::errors::{ApplicationError, ErrorCode};
-use crate::domains::ApplicationResult;
 use sqlx::PgPool;
 
 #[derive(Clone)]
@@ -9,8 +7,8 @@ pub struct PostgreSQLUserRepository {
 }
 
 impl PostgreSQLUserRepository {
-    pub async fn get_all_users(&self) -> ApplicationResult<Vec<User>> {
-        match sqlx::query_as(
+    pub async fn get_all_users(&self) -> sqlx::Result<Vec<User>> {
+        sqlx::query_as(
             "
 SELECT *
 FROM users
@@ -18,12 +16,31 @@ FROM users
         )
         .fetch_all(&self.db)
         .await
-        {
-            Ok(users) => Ok(users),
-            Err(_) => Err(ApplicationError {
-                code: ErrorCode::SystemError,
-                message: "failed to fetch users".to_string(),
-            }),
-        }
+    }
+
+    pub async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>> {
+        sqlx::query_as(
+            "
+SELECT *
+FROM users
+WHERE id = $1
+            ",
+        )
+        .bind(id)
+        .fetch_optional(&self.db)
+        .await
+    }
+
+    pub async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>> {
+        sqlx::query_as(
+            "
+SELECT *
+FROM users
+WHERE email = $1
+            ",
+        )
+        .bind(email)
+        .fetch_optional(&self.db)
+        .await
     }
 }
