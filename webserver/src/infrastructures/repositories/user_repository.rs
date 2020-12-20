@@ -20,7 +20,7 @@ FROM users
         .await
         {
             Ok(users) => Ok(users),
-            Err(err) => Err(ApplicationError {
+            Err(_) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
                 message: "failed to fetch users".to_string(),
             }),
