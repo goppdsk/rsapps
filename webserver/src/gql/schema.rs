@@ -3,7 +3,8 @@ use crate::domains::errors::{ApplicationError, ErrorCode};
 use crate::State;
 use juniper::http::{graphiql, GraphQLRequest, GraphQLResponse};
 use juniper::{
-    Context, EmptyMutation, EmptySubscription, FieldError, IntoFieldError, RootNode, ScalarValue,
+    Context, EmptyMutation, EmptySubscription, FieldError, FieldResult, IntoFieldError, RootNode,
+    ScalarValue,
 };
 use lazy_static::lazy_static;
 use std::convert::AsRef;
@@ -35,7 +36,7 @@ impl<S: ScalarValue> IntoFieldError<S> for ApplicationError {
 impl User {
     #[graphql(description = "A user id")]
     fn id(&self) -> i32 {
-        self.id.unwrap_or(0)
+        self.id
     }
 
     #[graphql(description = "A user name")]
@@ -43,14 +44,19 @@ impl User {
         &self.username
     }
 
-    #[graphql(description = "A user password")]
-    fn password(&self) -> &str {
-        &self.password
+    #[graphql(description = "A user email")]
+    fn email(&self) -> Option<&String> {
+        self.email.as_ref()
     }
 
-    #[graphql(description = "A user email")]
-    fn email(&self) -> &str {
-        &self.email
+    #[graphql(name = "createdAt", description = "A user created time")]
+    fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.created_at
+    }
+
+    #[graphql(name = "updatedAt", description = "A user updated time")]
+    fn updated_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.updated_at
     }
 }
 
@@ -66,9 +72,11 @@ impl QueryRoot {
     }
 
     #[graphql(description = "Get all Users")]
-    fn users(context: &State) -> Vec<User> {
-        let users: Vec<User> = Vec::new();
-        users.iter().cloned().collect()
+    async fn users(context: &State) -> FieldResult<Vec<User>> {
+        match context.user_service.clone().get_all_users().await {
+            Ok(users) => Ok(users),
+            Err(err) => Err(err.into_field_error()),
+        }
     }
 }
 

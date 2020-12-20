@@ -1,12 +1,29 @@
-use crate::domains::entities::context::RequestContext;
 use crate::domains::entities::user::User;
-use crate::domains::repositories::user_repository::UserRepository;
+use crate::domains::errors::{ApplicationError, ErrorCode};
+use crate::domains::ApplicationResult;
+use sqlx::PgPool;
 
 #[derive(Clone)]
-pub struct PostgreSQLUserRepository;
+pub struct PostgreSQLUserRepository {
+    pub db: PgPool,
+}
 
-impl UserRepository for PostgreSQLUserRepository {
-    fn get_all_users(&self, context: RequestContext) -> std::io::Result<Vec<User>> {
-        Ok(Vec::new())
+impl PostgreSQLUserRepository {
+    pub async fn get_all_users(&self) -> ApplicationResult<Vec<User>> {
+        match sqlx::query_as(
+            "
+SELECT *
+FROM users
+            ",
+        )
+        .fetch_all(&self.db)
+        .await
+        {
+            Ok(users) => Ok(users),
+            Err(err) => Err(ApplicationError {
+                code: ErrorCode::SystemError,
+                message: "failed to fetch users".to_string(),
+            }),
+        }
     }
 }

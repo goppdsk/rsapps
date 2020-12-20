@@ -1,16 +1,21 @@
 use bcrypt::verify;
 
-#[derive(Clone)]
+#[derive(Clone, sqlx::FromRow)]
 pub struct User {
-    pub id: Option<i32>,
+    pub id: i32,
     pub username: String,
-    pub password: String,
-    pub email: String,
-    pub password_hash: String,
+    pub email: Option<String>,
+    pub password_hash: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl User {
     fn valid_password(&self, password: String) -> bool {
-        verify(password, &self.password_hash).unwrap_or(false)
+        let hash = match self.password_hash.as_ref() {
+            Some(hash) => hash,
+            None => return false,
+        };
+        verify(password, &hash).unwrap_or(false)
     }
 }

@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  rsapps_postgres:
+    container_name: rsapps_postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "P@ssw0rd!"
+      PGDATA: "/data/postgres"
+      POSTGRES_DB: "rsapps"
+    ports:
+      - 15432:5432
+    volumes:
+      - rsapps_postgres:/data/postgres
+      - ./docker-postgres-init.sql:/docker-entrypoint-initdb.d/docker-postgres-init.sql
+    restart: unless-stopped
+
+volumes:
+  rsapps_postgres:
