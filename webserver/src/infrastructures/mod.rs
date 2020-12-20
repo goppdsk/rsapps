@@ -1,2 +1,2 @@
-pub mod di_container;
-pub mod repositories;
+pub(crate) mod di_container;
+pub(crate) mod repositories;
