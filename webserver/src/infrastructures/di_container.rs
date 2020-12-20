@@ -7,9 +7,9 @@ pub struct DIContainer {
 }
 
 impl DIContainer {
-    pub fn user_repository(&self) -> Box<PostgreSQLUserRepository> {
-        Box::new(PostgreSQLUserRepository {
+    pub fn user_repository(&self) -> PostgreSQLUserRepository {
+        PostgreSQLUserRepository {
             db: self.db.clone(),
-        })
+        }
     }
 }

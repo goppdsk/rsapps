@@ -19,6 +19,7 @@ use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, 
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::sync::Arc;
 use tide::http::headers::AUTHORIZATION;
 use tide::http::Headers;
 use tide::{Redirect, Server};
@@ -93,7 +94,7 @@ fn get_jwt_claims(headers: Headers) -> ApplicationResult<Claims> {
 }
 
 async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
-    let di_container = Box::new(DIContainer {
+    let di_container = Arc::new(DIContainer {
         db: create_pool(5, db_connections).await?,
     });
     let mut app = Server::with_state(State {

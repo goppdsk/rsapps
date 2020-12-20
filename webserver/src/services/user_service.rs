@@ -2,14 +2,15 @@ use crate::domains::entities::user::User;
 use crate::domains::errors::{ApplicationError, ErrorCode};
 use crate::domains::ApplicationResult;
 use crate::infrastructures::di_container::DIContainer;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct UserService {
-    di_container: Box<DIContainer>,
+    di_container: Arc<DIContainer>,
 }
 
 impl UserService {
-    pub fn new(di_container: Box<DIContainer>) -> Self {
+    pub fn new(di_container: Arc<DIContainer>) -> Self {
         UserService { di_container }
     }
     pub async fn get_all_users(self) -> ApplicationResult<Vec<User>> {
