@@ -2,14 +2,13 @@
 extern crate juniper;
 #[macro_use]
 extern crate strum;
-extern crate dyn_clone;
 
 mod domains;
 mod gql;
 mod infrastructures;
 mod services;
 
-use crate::gql::schema::{handle_graphiql, handle_graphql};
+use crate::gql::{handle_graphiql, handle_graphql};
 use crate::infrastructures::database::create_pool;
 use crate::infrastructures::di_container::DIContainer;
 use crate::services::user_service::UserService;
