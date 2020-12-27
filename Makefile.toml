@@ -6,6 +6,10 @@ min_version = "0.32.9"
 namespace = "core"
 private = true
 
+[tasks.format]
+dependencies = ["core::format-flow"]
+workspace = true
+
 [tasks.lint]
 dependencies = ["core::check-format-flow", "core::clippy-flow"]
 workspace = true

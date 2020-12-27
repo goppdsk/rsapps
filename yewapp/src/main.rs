@@ -1,46 +1,47 @@
-use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-struct Model {
-    link: ComponentLink<Self>,
-    value: i64,
+mod todo;
+use todo::Todo;
+
+#[derive(Clone, Properties, Default)]
+struct AppProps {
+    children: Children,
 }
 
-enum Msg {
-    AddOne,
+struct App {
+    props: AppProps,
 }
 
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, value: 0 }
+impl Component for App {
+    type Message = ();
+    type Properties = AppProps;
+
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AddOne => self.value += 1,
-        }
-        true
+    fn update(&mut self, _msg: Self::Message) -> bool {
+        unimplemented!()
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // Should only return "true" if new properties are different to
-        // previously received properties.
-        // This component has no properties so we will always return "false".
-        false
+    fn change(&mut self, _props: Self::Properties) -> bool {
+        unimplemented!()
     }
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                <p>{ self.value }</p>
+            <div id="todomvc-wrapper">
+                <Todo />
+                <footer class="info">
+                    <p>{ "Double-click to edit a todo" }</p>
+                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/" target="_blank">{ "Denis Kolodin" }</a></p>
+                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
+                </footer>
             </div>
         }
     }
 }
 
 pub fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
