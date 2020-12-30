@@ -1,9 +1,9 @@
 [package]
-name = "yewapp"
-version = "0.1.0"
 authors = ["Koichiro Okamoto <koichirookamoto@icloud.com>"]
 edition = "2018"
+name = "yewapp"
+version = "0.1.0"
 
 [dependencies]
-yew = "0.17"
 wasm-bindgen = "0.2.67"
+yew = "0.17"
