@@ -1,5 +1,7 @@
 #![recursion_limit = "512"]
 extern crate yew;
+#[macro_use]
+extern crate strum;
 
 use yew::prelude::*;
 
