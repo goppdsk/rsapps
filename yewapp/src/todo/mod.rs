@@ -7,94 +7,12 @@ struct TodoModel {
     complete: bool,
 }
 
-#[derive(Clone, Properties, PartialEq)]
-struct TodoItemProps {
-    item: TodoModel,
-}
-
-struct TodoItem {
-    props: TodoItemProps,
-}
-
-impl Component for TodoItem {
-    type Message = ();
-    type Properties = TodoItemProps;
-
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> bool {
-        unimplemented!()
-    }
-
-    fn change(&mut self, props: Self::Properties) -> bool {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
-        html! {
-            <li class="todo">
-                <div class="view">
-                    <label>{self.props.item.body.to_owned()}</label>
-                </div>
-            </li>
-        }
-    }
-}
-
-#[derive(Clone, Properties, PartialEq)]
-struct TodoListProps {
-    list: Vec<TodoModel>,
-}
-
-struct TodoList {
-    props: TodoListProps,
-}
-
-impl Component for TodoList {
-    type Message = ();
-    type Properties = TodoListProps;
-
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> bool {
-        unimplemented!()
-    }
-
-    fn change(&mut self, props: Self::Properties) -> bool {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
-        html! {
-            <ul class="todo-list">
-                { self.props.list.iter().map(|item| {
-                    html! {
-                      <TodoItem item=item />
-                    }
-                }).collect::<Html>()}
-            </ul>
-        }
-    }
-}
-
 pub enum TodoMessage {
     ChangeInput(String),
     ClearCompleted,
     Add,
+    Toggle(usize),
+    Delete(usize),
     None,
 }
 
@@ -135,12 +53,21 @@ impl Component for Todo {
                 self.state.list.clear();
             }
             TodoMessage::Add => {
-                println!("aaaa");
+                if self.state.text.is_empty() {
+                    return false;
+                }
                 self.state.list.push(TodoModel {
                     body: self.state.text.to_owned(),
                     complete: false,
                 });
                 self.state.text = "".to_string();
+            }
+            TodoMessage::Toggle(index) => {
+                let item = self.state.list.get_mut(index).unwrap();
+                item.complete = !item.complete;
+            }
+            TodoMessage::Delete(index) => {
+                self.state.list.remove(index);
             }
             TodoMessage::None => return false,
         }
@@ -168,7 +95,11 @@ impl Component for Todo {
                     />
                 </header>
                 <section class="main">
-                    <TodoList list=self.state.list.clone() />
+                    <ul class="todo-list">
+                        { self.state.list.iter().enumerate().map(|(i, item)| {
+                            self.render_item(i, item)
+                        }).collect::<Html>()}
+                    </ul>
                 </section>
                 <footer class="footer">
                     <span class="todo-count">
@@ -180,6 +111,29 @@ impl Component for Todo {
                     </button>
                 </footer>
             </section>
+        }
+    }
+}
+
+impl Todo {
+    fn render_item(&self, index: usize, item: &TodoModel) -> Html {
+        let mut class = Classes::from("todo");
+        if item.complete {
+            class.push(" completed");
+        }
+        html! {
+            <li class=class>
+                <div class="view">
+                    <input
+                        class="toggle"
+                        type="checkbox"
+                        checked=item.complete
+                        onclick=self.link.callback(move |_| TodoMessage::Toggle(index))
+                    />
+                    <label>{item.body.to_owned()}</label>
+                    <button class="destroy" onclick=self.link.callback(move |_| TodoMessage::Delete(index)) />
+                </div>
+            </li>
         }
     }
 }
