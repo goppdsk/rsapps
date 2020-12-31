@@ -1,4 +1,6 @@
 use crate::domains::entities::user::User;
+use crate::domains::repositories::user_repository::UserRepository;
+use async_trait::async_trait;
 use sqlx::PgPool;
 
 #[derive(Clone)]
@@ -6,8 +8,9 @@ pub struct PostgreSQLUserRepository {
     pub db: PgPool,
 }
 
-impl PostgreSQLUserRepository {
-    pub async fn get_all_users(&self) -> sqlx::Result<Vec<User>> {
+#[async_trait]
+impl UserRepository for PostgreSQLUserRepository {
+    async fn get_all_users(&self) -> sqlx::Result<Vec<User>> {
         sqlx::query_as(
             "
 SELECT *
@@ -18,7 +21,7 @@ FROM users
         .await
     }
 
-    pub async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>> {
+    async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>> {
         sqlx::query_as(
             "
 SELECT *
@@ -31,7 +34,7 @@ WHERE id = $1
         .await
     }
 
-    pub async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>> {
+    async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>> {
         sqlx::query_as(
             "
 SELECT *

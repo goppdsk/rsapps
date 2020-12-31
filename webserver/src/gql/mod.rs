@@ -1,7 +1,7 @@
 pub mod query;
 pub mod user_resolver;
 
-use crate::domains::errors::{ApplicationError, ErrorCode};
+use crate::domains::errors::ApplicationError;
 use crate::gql::query::QueryRoot;
 use crate::State;
 use juniper::http::{graphiql, GraphQLRequest, GraphQLResponse};

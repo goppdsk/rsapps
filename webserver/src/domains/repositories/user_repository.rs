@@ -1,9 +1,11 @@
 use crate::domains::entities::user::User;
-use sqlx::query::QueryAs;
-use sqlx::Database;
+use async_trait::async_trait;
 
-use crate::domains::ApplicationResult;
+#[async_trait]
+pub trait UserRepository {
+    async fn get_all_users(&self) -> sqlx::Result<Vec<User>>;
 
-pub trait UserRepository<DB: Database>: Send + Sync {
-    fn get_all_users(&self) -> ApplicationResult<QueryAs<DB, User, User>>;
+    async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>>;
+
+    async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>>;
 }
