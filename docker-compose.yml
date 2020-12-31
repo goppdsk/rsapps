@@ -15,7 +15,6 @@ services:
       - 15432:5432
     volumes:
       - rsapps_postgres:/data/postgres
-      - ./docker-postgres-init.sql:/docker-entrypoint-initdb.d/docker-postgres-init.sql
     restart: unless-stopped
 
 volumes:
