@@ -11,7 +11,8 @@ pub struct PostgreSQLUserRepository {
 #[async_trait]
 impl UserRepository for PostgreSQLUserRepository {
     async fn get_all_users(&self) -> sqlx::Result<Vec<User>> {
-        sqlx::query_as(
+        sqlx::query_as!(
+            User,
             "
 SELECT *
 FROM users
@@ -22,27 +23,29 @@ FROM users
     }
 
     async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>> {
-        sqlx::query_as(
+        sqlx::query_as!(
+            User,
             "
 SELECT *
 FROM users
 WHERE id = $1
             ",
+            id
         )
-        .bind(id)
         .fetch_optional(&self.db)
         .await
     }
 
     async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>> {
-        sqlx::query_as(
+        sqlx::query_as!(
+            User,
             "
 SELECT *
 FROM users
 WHERE email = $1
             ",
+            email
         )
-        .bind(email)
         .fetch_optional(&self.db)
         .await
     }

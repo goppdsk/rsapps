@@ -3,7 +3,7 @@ use bcrypt::verify;
 #[derive(Clone, sqlx::FromRow)]
 pub struct User {
     pub id: i32,
-    pub username: String,
+    pub username: Option<String>,
     pub email: Option<String>,
     pub password_hash: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,

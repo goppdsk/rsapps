@@ -9,8 +9,8 @@ impl User {
     }
 
     #[graphql(description = "A user name")]
-    fn username(&self) -> &str {
-        &self.username
+    fn username(&self) -> Option<&String> {
+        self.username.as_ref()
     }
 
     #[graphql(description = "A user email")]
