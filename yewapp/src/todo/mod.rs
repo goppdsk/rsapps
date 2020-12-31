@@ -59,18 +59,18 @@ pub struct TodoState {
     filter: Filter,
 }
 
-pub struct Todo {
+pub struct TodoApp {
     state: TodoState,
     link: ComponentLink<Self>,
     edit_ref: NodeRef,
 }
 
-impl Component for Todo {
+impl Component for TodoApp {
     type Message = TodoMessage;
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
+        TodoApp {
             state: TodoState {
                 text: "".to_owned(),
                 list: vec![],
@@ -92,8 +92,8 @@ impl Component for Todo {
                     .state
                     .list
                     .iter()
-                    .filter(|item| item.complete == false)
-                    .map(|item| item.clone())
+                    .filter(|item| !item.complete)
+                    .cloned()
                     .collect::<Vec<TodoModel>>();
             }
             TodoMessage::Add => {
@@ -165,25 +165,32 @@ impl Component for Todo {
 
     fn view(&self) -> Html {
         html! {
-            <section class="todoapp">
-                <header class="header">
-                    <h1>{ "todos" }</h1>
-                    {self.render_new_input()}
-                </header>
-                {self.render_main()}
-            </section>
+            <div id="todomvc-wrapper">
+                <section class="todoapp">
+                    <header class="header">
+                        <h1>{ "todos" }</h1>
+                        {self.render_new_input()}
+                    </header>
+                    {self.render_main()}
+                </section>
+                <footer class="info">
+                    <p>{ "Double-click to edit a todo" }</p>
+                    <p>{ "Written by " }<a href="https://github.com/goppdsk/" target="_blank">{ "ここ" }</a></p>
+                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
+                </footer>
+            </div>
         }
     }
 }
 
-impl Todo {
+impl TodoApp {
     fn render_main(&self) -> Html {
         let list = self
             .state
             .list
             .iter()
             .filter(|item| self.state.filter.fits(*item))
-            .map(|item| item.clone())
+            .cloned()
             .collect::<Vec<TodoModel>>();
 
         html! {
@@ -342,11 +349,11 @@ impl TodoState {
     }
 
     fn total_completed(self) -> i32 {
-        self.list.into_iter().filter(|t| t.complete == true).count() as i32
+        self.list.into_iter().filter(|t| t.complete).count() as i32
     }
 
     fn is_all_completed(&self) -> bool {
-        self.list.iter().all(|item| item.complete == true)
+        self.list.iter().all(|item| item.complete)
     }
 
     fn remove(&mut self, index: usize) {

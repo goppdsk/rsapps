@@ -6,7 +6,7 @@ extern crate strum;
 use yew::prelude::*;
 
 mod todo;
-use todo::Todo;
+use todo::TodoApp;
 
 struct App;
 
@@ -28,14 +28,7 @@ impl Component for App {
 
     fn view(&self) -> Html {
         html! {
-            <div id="todomvc-wrapper">
-                <Todo />
-                <footer class="info">
-                    <p>{ "Double-click to edit a todo" }</p>
-                    <p>{ "Written by " }<a href="https://github.com/goppdsk/" target="_blank">{ "ここ" }</a></p>
-                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
-                </footer>
-            </div>
+            <TodoApp />
         }
     }
 }
