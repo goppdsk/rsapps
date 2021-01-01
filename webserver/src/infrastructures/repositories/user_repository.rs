@@ -9,8 +9,8 @@ pub struct PostgreSQLUserRepository {
 
 #[async_trait]
 impl UserRepository for PostgreSQLUserRepository {
-    async fn get_all_users(&self) -> sqlx::Result<Vec<User>> {
-        sqlx::query_as!(
+    async fn get_all_users(&self) -> anyhow::Result<Vec<User>> {
+        Ok(sqlx::query_as!(
             User,
             "
 SELECT *
@@ -18,11 +18,11 @@ FROM users
             ",
         )
         .fetch_all(&self.db)
-        .await
+        .await?)
     }
 
-    async fn get_user_by_id(&self, id: i32) -> sqlx::Result<Option<User>> {
-        sqlx::query_as!(
+    async fn get_user_by_id(&self, id: i32) -> anyhow::Result<Option<User>> {
+        Ok(sqlx::query_as!(
             User,
             "
 SELECT *
@@ -32,11 +32,11 @@ WHERE id = $1
             id
         )
         .fetch_optional(&self.db)
-        .await
+        .await?)
     }
 
-    async fn get_user_by_email(&self, email: String) -> sqlx::Result<Option<User>> {
-        sqlx::query_as!(
+    async fn get_user_by_email(&self, email: String) -> anyhow::Result<Option<User>> {
+        Ok(sqlx::query_as!(
             User,
             "
 SELECT *
@@ -46,6 +46,6 @@ WHERE email = $1
             email
         )
         .fetch_optional(&self.db)
-        .await
+        .await?)
     }
 }

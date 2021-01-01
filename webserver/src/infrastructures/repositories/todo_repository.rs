@@ -9,8 +9,8 @@ pub struct PostgreSQLTodoRepository {
 
 #[async_trait]
 impl TodoRepository for PostgreSQLTodoRepository {
-    async fn get_all_todos(&self) -> sqlx::Result<Vec<Todo>> {
-        sqlx::query_as!(
+    async fn get_all_todos(&self) -> anyhow::Result<Vec<Todo>> {
+        Ok(sqlx::query_as!(
             Todo,
             "
 SELECT *
@@ -18,10 +18,10 @@ FROM todos
             "
         )
         .fetch_all(&self.db)
-        .await
+        .await?)
     }
 
-    async fn create_todo(&self, todo: Todo) -> sqlx::Result<Todo> {
+    async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo> {
         sqlx::query_as!(
             Todo,
             "
@@ -42,7 +42,7 @@ VALUES ($1, $2, $3, $4)
         &self,
         id: i32,
         updated_at: chrono::DateTime<chrono::Utc>,
-    ) -> sqlx::Result<bool> {
+    ) -> anyhow::Result<bool> {
         sqlx::query_as!(
             Todo,
             "
@@ -61,7 +61,7 @@ WHERE id = $2
     async fn toggle_all_complete(
         &self,
         updated_at: chrono::DateTime<chrono::Utc>,
-    ) -> sqlx::Result<bool> {
+    ) -> anyhow::Result<bool> {
         sqlx::query_as!(
             Todo,
             "
@@ -75,7 +75,7 @@ SET complete = not complete, updated_at = $1
         Ok(true)
     }
 
-    async fn delete_todo(&self, id: i32) -> sqlx::Result<bool> {
+    async fn delete_todo(&self, id: i32) -> anyhow::Result<bool> {
         sqlx::query_as!(
             Todo,
             "

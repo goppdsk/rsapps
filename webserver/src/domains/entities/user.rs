@@ -19,3 +19,41 @@ impl User {
         verify(password, &hash).unwrap_or(false)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_valid_password() {
+        let now = chrono::Utc::now();
+        let password = "password";
+        let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
+        let user = User {
+            id: 1,
+            username: None,
+            email: None,
+            password_hash: Some(hash),
+            created_at: now,
+            updated_at: now,
+        };
+        assert_eq!(true, user.valid_password(password.to_owned()));
+    }
+
+    #[test]
+    fn test_valid_password_failed() {
+        let now = chrono::Utc::now();
+        let password = "password";
+        let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
+        let user = User {
+            id: 1,
+            username: None,
+            email: None,
+            password_hash: Some(hash),
+            created_at: now,
+            updated_at: now,
+        };
+        assert_eq!(false, user.valid_password("invalid".to_owned()));
+    }
+}

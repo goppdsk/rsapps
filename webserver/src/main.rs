@@ -14,6 +14,7 @@ use crate::infrastructures::database::create_pool;
 use crate::infrastructures::di_container::PgDIContainer;
 use crate::services::todo_service::TodoService;
 use crate::services::user_service::UserService;
+use std::env;
 use std::sync::Arc;
 use tide::{Redirect, Server};
 
@@ -23,9 +24,9 @@ pub struct State {
     todo_service: TodoService,
 }
 
-async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
+async fn bootstrap(db_connections: &str) -> anyhow::Result<Server<State>> {
     let di_container = Arc::new(PgDIContainer {
-        db: create_pool(5, db_connections).await?,
+        db: create_pool::<sqlx::Postgres>(5, db_connections).await?,
     });
     let mut app = Server::with_state(State {
         user_service: UserService::new(di_container.as_ref()),
@@ -38,9 +39,9 @@ async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
 }
 
 #[async_std::main]
-async fn main() -> tide::Result<()> {
+async fn main() -> anyhow::Result<()> {
     tide::log::with_level(tide::log::LevelFilter::Info);
-    let app = bootstrap("postgres://postgres:P@ssw0rd!@localhost:15432/rsapps").await?;
+    let app = bootstrap(&env::var("DATABASE_URL")?).await?;
     app.listen("0.0.0.0:8080").await?;
     Ok(())
 }

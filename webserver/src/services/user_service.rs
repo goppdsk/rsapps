@@ -41,7 +41,7 @@ impl UserService {
 
     fn handle_user(
         self,
-        result: sqlx::Result<Option<User>>,
+        result: anyhow::Result<Option<User>>,
         password: String,
     ) -> ApplicationResult<User> {
         match result {
