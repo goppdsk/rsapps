@@ -1,20 +1,23 @@
 use crate::domains::entities::user::User;
 use crate::domains::errors::{ApplicationError, ErrorCode};
+use crate::domains::repositories::user_repository::UserRepository;
 use crate::domains::ApplicationResult;
 use crate::infrastructures::di_container::DIContainer;
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct UserService {
-    di_container: Arc<DIContainer>,
+    user_repository: Box<dyn UserRepository + Send + Sync>,
 }
 
 impl UserService {
-    pub fn new(di_container: Arc<DIContainer>) -> Self {
-        UserService { di_container }
+    pub fn new(di_container: Arc<dyn DIContainer>) -> Self {
+        UserService {
+            user_repository: di_container.user_repository(),
+        }
     }
     pub async fn get_all_users(self) -> ApplicationResult<Vec<User>> {
-        match self.di_container.user_repository().get_all_users().await {
+        match self.user_repository.get_all_users().await {
             Ok(users) => Ok(users),
             Err(err) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
@@ -24,7 +27,7 @@ impl UserService {
     }
 
     pub async fn get_user_by_id(self, id: i32, password: String) -> ApplicationResult<User> {
-        let user = self.di_container.user_repository().get_user_by_id(id).await;
+        let user = self.user_repository.get_user_by_id(id).await;
         self.handle_user(user, password)
     }
 
@@ -33,11 +36,7 @@ impl UserService {
         email: String,
         password: String,
     ) -> ApplicationResult<User> {
-        let user = self
-            .di_container
-            .user_repository()
-            .get_user_by_email(email)
-            .await;
+        let user = self.user_repository.get_user_by_email(email).await;
         self.handle_user(user, password)
     }
 

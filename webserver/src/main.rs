@@ -11,7 +11,7 @@ mod services;
 
 use crate::gql::{handle_graphiql, handle_graphql};
 use crate::infrastructures::database::create_pool;
-use crate::infrastructures::di_container::DIContainer;
+use crate::infrastructures::di_container::PgDIContainer;
 use crate::services::user_service::UserService;
 use std::sync::Arc;
 use tide::{Redirect, Server};
@@ -22,7 +22,7 @@ pub struct State {
 }
 
 async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
-    let di_container = Arc::new(DIContainer {
+    let di_container = Arc::new(PgDIContainer {
         db: create_pool(5, db_connections).await?,
     });
     let mut app = Server::with_state(State {
