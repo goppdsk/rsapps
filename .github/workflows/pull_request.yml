@@ -6,6 +6,8 @@ jobs:
   lint:
     name: Format & Clippy
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:P@ssw0rd!@localhost:15432/rsapps
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -27,11 +29,39 @@ jobs:
       - name: Format
         uses: actions-rs/cargo@v1
         with:
-          command: Format
+          command: fmt
           args: --all -- --check
+
+      - name: Docker compose
+        run: |
+          docker-compose up -d --build
+
+      - name: Install migration tool
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --version=0.2.0 --no-default-features --features postgres -- sqlx-cli
+
+      - name: Migration
+        working-directory: ./webserver
+        run: |
+          sqlx database create
+          sqlx migrate run
 
       - name: Clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets -- -D warnings
+          args: --all-targets
+
+      - name: Unit tests for web server
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --bin rsapps-webserver
+
+      - name: Integration tests for web server
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p rsapps-webserver --test integration
