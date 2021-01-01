@@ -1,0 +1,8 @@
+query AllTodos {
+  todos {
+    id
+    body
+    complete
+    updatedAt
+  }
+}

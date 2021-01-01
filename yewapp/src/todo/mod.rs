@@ -1,10 +1,49 @@
+use graphql_client::GraphQLQuery;
+use serde_json::json;
+use std::error::Error;
+use std::fmt;
+use std::fmt::{Debug, Display, Formatter};
 use strum::IntoEnumIterator;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{Request, RequestInit, RequestMode, Response};
 use yew::events::{InputData, KeyboardEvent};
 use yew::prelude::*;
 use yew::web_sys::HtmlInputElement;
+use yewtil::future::LinkFuture;
+
+type DateTimeUtc = String;
+
+#[derive(GraphQLQuery)]
+#[graphql(schema_path = "src/schema.json", query_path = "src/todo/todos.graphql")]
+pub struct AllTodos;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FetchError {
+    err: JsValue,
+}
+impl Display for FetchError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(&self.err, f)
+    }
+}
+impl Error for FetchError {}
+
+pub enum TodoFetchState {
+    Success(Vec<all_todos::AllTodosTodos>),
+    Failed(FetchError),
+}
+
+impl From<JsValue> for FetchError {
+    fn from(value: JsValue) -> Self {
+        Self { err: value }
+    }
+}
 
 #[derive(Clone, PartialEq)]
 struct TodoModel {
+    id: i64,
     body: String,
     complete: bool,
     editing: bool,
@@ -23,6 +62,7 @@ pub enum TodoMessage {
     SetFilter(Filter),
     CancelEdit(usize),
     Focus,
+    Fetch(TodoFetchState),
     None,
 }
 
@@ -70,7 +110,7 @@ impl Component for TodoApp {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        TodoApp {
+        let app = TodoApp {
             state: TodoState {
                 text: "".to_owned(),
                 list: vec![],
@@ -79,7 +119,14 @@ impl Component for TodoApp {
             },
             link,
             edit_ref: NodeRef::default(),
-        }
+        };
+        app.link.send_future(async {
+            match fetch_all_todos().await {
+                Ok(todos) => TodoMessage::Fetch(TodoFetchState::Success(todos)),
+                Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+            }
+        });
+        app
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
@@ -102,6 +149,7 @@ impl Component for TodoApp {
                     return false;
                 }
                 self.state.list.push(TodoModel {
+                    id: 0,
                     body: text,
                     complete: false,
                     editing: false,
@@ -154,6 +202,20 @@ impl Component for TodoApp {
                     elem.focus().unwrap();
                 }
             }
+            TodoMessage::Fetch(TodoFetchState::Success(todos)) => {
+                self.state.list = todos
+                    .iter()
+                    .map(|todo| TodoModel {
+                        id: todo.id,
+                        body: todo.body.to_owned(),
+                        complete: todo.complete,
+                        editing: false,
+                    })
+                    .collect::<Vec<TodoModel>>();
+            }
+            TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
+                yew::web_sys::console::log_1(&err.err);
+            }
             TodoMessage::None => return false,
         }
         true
@@ -180,6 +242,39 @@ impl Component for TodoApp {
                 </footer>
             </div>
         }
+    }
+}
+
+async fn fetch_all_todos() -> Result<Vec<all_todos::AllTodosTodos>, FetchError> {
+    let request_body = AllTodos::build_query(all_todos::Variables {});
+    let json_body = json!(request_body);
+    let headers = match JsValue::from_serde(&json!({
+        "Content-Type": "application/json"
+    })) {
+        Ok(headers) => headers,
+        Err(_) => JsValue::NULL,
+    };
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.mode(RequestMode::Cors);
+    opts.body(Some(JsValue::from_str(json_body.to_string().as_str())).as_ref());
+    opts.headers(&headers);
+    let request = Request::new_with_str_and_init("http://localhost:8081/graphql", &opts)?;
+
+    let window = yew::utils::window();
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    let resp: Response = resp_value.dyn_into().unwrap();
+
+    let gql_resp = JsFuture::from(resp.json()?).await?;
+
+    match gql_resp.into_serde::<graphql_client::Response<all_todos::ResponseData>>() {
+        Ok(data) => match data.data {
+            Some(data) => Ok(data.todos),
+            None => Ok(vec![]),
+        },
+        Err(_) => Err(FetchError {
+            err: JsValue::from_str("failed to fecth all todos"),
+        }),
     }
 }
 

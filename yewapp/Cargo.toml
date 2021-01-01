@@ -5,6 +5,24 @@ name = "yewapp"
 version = "0.1.0"
 
 [dependencies]
+anyhow = "1.0"
+futures-util = "0.3.8"
+graphql_client = {version = "0.9.0", features = ["web"]}
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
 strum = {version = "0.20", features = ["derive"]}
-wasm-bindgen = "0.2.67"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
 yew = "0.17"
+yewtil = {version = "0.3", features = ["future"]}
+
+[dependencies.web-sys]
+features = [
+  "Headers",
+  "Request",
+  "RequestInit",
+  "RequestMode",
+  "Response",
+  "Window",
+]
+version = "0.3"
