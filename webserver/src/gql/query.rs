@@ -1,5 +1,6 @@
+use crate::auth::create_jwt;
 use crate::domains::entities::user::User;
-use crate::{create_jwt, State};
+use crate::State;
 use juniper::{FieldResult, IntoFieldError};
 
 pub struct QueryRoot;
