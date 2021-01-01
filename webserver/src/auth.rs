@@ -5,11 +5,10 @@ use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, 
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::env;
-use tide::http::headers::AUTHORIZATION;
-use tide::http::Headers;
+use tide::http::headers::HeaderValues;
 
 /// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     sub: String,
     exp: usize,
@@ -42,9 +41,17 @@ pub fn create_jwt(uid: i32) -> ApplicationResult<String> {
     })
 }
 
-pub fn get_jwt_claims(headers: Headers) -> ApplicationResult<Claims> {
-    let header = &headers[AUTHORIZATION];
-    let auth_header = match header.get(0) {
+pub fn get_jwt_claims(headers: Option<&HeaderValues>) -> ApplicationResult<Claims> {
+    let auth_headers = match headers {
+        Some(headers) => headers,
+        None => {
+            return Err(ApplicationError {
+                code: ErrorCode::NoAuthHeaderError,
+                message: "auth header is invalid".to_owned(),
+            })
+        }
+    };
+    let auth_header = match auth_headers.get(0) {
         Some(v) => v.as_str(),
         None => {
             return Err(ApplicationError {
