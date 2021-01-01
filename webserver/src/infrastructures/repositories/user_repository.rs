@@ -1,11 +1,10 @@
 use crate::domains::entities::user::User;
 use crate::domains::repositories::user_repository::UserRepository;
 use async_trait::async_trait;
-use sqlx::PgPool;
 
 #[derive(Clone)]
 pub struct PostgreSQLUserRepository {
-    pub db: PgPool,
+    pub db: sqlx::PgPool,
 }
 
 #[async_trait]

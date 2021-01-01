@@ -1,13 +1,14 @@
-pub mod query;
-pub mod user_resolver;
+pub(crate) mod mutation;
+pub(crate) mod query;
+pub(crate) mod todo_resolver;
+pub(crate) mod user_resolver;
 
 use crate::domains::errors::ApplicationError;
+use crate::gql::mutation::MutationRoot;
 use crate::gql::query::QueryRoot;
 use crate::State;
 use juniper::http::{graphiql, GraphQLRequest, GraphQLResponse};
-use juniper::{
-    Context, EmptyMutation, EmptySubscription, FieldError, IntoFieldError, RootNode, ScalarValue,
-};
+use juniper::{Context, EmptySubscription, FieldError, IntoFieldError, RootNode, ScalarValue};
 use lazy_static::lazy_static;
 use std::convert::AsRef;
 use tide::http::mime;
@@ -27,10 +28,10 @@ impl<S: ScalarValue> IntoFieldError<S> for ApplicationError {
 
 impl Context for State {}
 
-type Schema = RootNode<'static, QueryRoot, EmptyMutation<State>, EmptySubscription<State>>;
+type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<State>>;
 lazy_static! {
     static ref SCHEMA: Schema =
-        Schema::new(QueryRoot {}, EmptyMutation::new(), EmptySubscription::new());
+        Schema::new(QueryRoot {}, MutationRoot {}, EmptySubscription::new());
 }
 
 pub async fn handle_graphql(mut request: Request<State>) -> tide::Result {

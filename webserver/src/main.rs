@@ -12,6 +12,7 @@ mod services;
 use crate::gql::{handle_graphiql, handle_graphql};
 use crate::infrastructures::database::create_pool;
 use crate::infrastructures::di_container::PgDIContainer;
+use crate::services::todo_service::TodoService;
 use crate::services::user_service::UserService;
 use std::sync::Arc;
 use tide::{Redirect, Server};
@@ -19,6 +20,7 @@ use tide::{Redirect, Server};
 #[derive(Clone)]
 pub struct State {
     user_service: UserService,
+    todo_service: TodoService,
 }
 
 async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
@@ -26,7 +28,8 @@ async fn bootstrap(db_connections: &str) -> tide::Result<Server<State>> {
         db: create_pool(5, db_connections).await?,
     });
     let mut app = Server::with_state(State {
-        user_service: UserService::new(di_container),
+        user_service: UserService::new(di_container.as_ref()),
+        todo_service: TodoService::new(di_container.as_ref()),
     });
     app.at("/").get(Redirect::permanent("/graphiql"));
     app.at("/graphql").post(handle_graphql);

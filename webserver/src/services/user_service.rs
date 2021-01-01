@@ -3,7 +3,6 @@ use crate::domains::errors::{ApplicationError, ErrorCode};
 use crate::domains::repositories::user_repository::UserRepository;
 use crate::domains::ApplicationResult;
 use crate::infrastructures::di_container::DIContainer;
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct UserService {
@@ -11,8 +10,8 @@ pub struct UserService {
 }
 
 impl UserService {
-    pub fn new(di_container: Arc<dyn DIContainer>) -> Self {
-        UserService {
+    pub fn new(di_container: &dyn DIContainer) -> Self {
+        Self {
             user_repository: di_container.user_repository(),
         }
     }

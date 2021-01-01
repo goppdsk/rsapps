@@ -1,4 +1,5 @@
 use crate::auth::create_jwt;
+use crate::domains::entities::todo::Todo;
 use crate::domains::entities::user::User;
 use crate::State;
 use juniper::{FieldResult, IntoFieldError};
@@ -54,6 +55,14 @@ impl QueryRoot {
         };
         match create_jwt(user.id) {
             Ok(jwt) => Ok(jwt),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
+
+    #[graphql(description = "Get all todos")]
+    async fn todos(context: &State) -> FieldResult<Vec<Todo>> {
+        match context.todo_service.clone().get_all_todos().await {
+            Ok(todos) => Ok(todos),
             Err(err) => Err(err.into_field_error()),
         }
     }

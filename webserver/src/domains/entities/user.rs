@@ -1,6 +1,6 @@
 use bcrypt::verify;
 
-#[derive(Clone, sqlx::FromRow)]
+#[derive(Clone)]
 pub struct User {
     pub id: i32,
     pub username: Option<String>,
