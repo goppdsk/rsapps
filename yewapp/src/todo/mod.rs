@@ -454,12 +454,13 @@ impl TodoState {
     }
 
     fn get_filtered_index(&mut self, index: usize) -> usize {
-        let list = self
+        let mut list = self
             .list
             .iter()
             .enumerate()
             .filter(|&(_, item)| self.filter.fits(item))
             .collect::<Vec<_>>();
+        list.sort_by_key(|pair| pair.1.id);
         let &(index, _) = list.get(index).unwrap();
         index
     }
