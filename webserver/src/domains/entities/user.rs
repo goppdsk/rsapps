@@ -29,7 +29,7 @@ mod tests {
     fn test_valid_password() {
         let now = chrono::Utc::now();
         let password = "password";
-        let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
+        let hash = bcrypt::hash(password, 10).unwrap();
         let user = User {
             id: 1,
             username: "testuser".to_owned(),
@@ -45,7 +45,7 @@ mod tests {
     fn test_valid_password_failed() {
         let now = chrono::Utc::now();
         let password = "password";
-        let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
+        let hash = bcrypt::hash(password, 10).unwrap();
         let user = User {
             id: 1,
             username: "testuser".to_owned(),

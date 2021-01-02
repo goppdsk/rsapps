@@ -42,7 +42,7 @@ impl UserService {
         };
 
         let now = chrono::Utc::now();
-        let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
+        let hash = bcrypt::hash(password, 10).unwrap();
         let new_user = User {
             id: 0,
             email: None,
@@ -81,6 +81,15 @@ impl UserService {
         password: String,
     ) -> ApplicationResult<User> {
         let user = self.user_repository.get_user_by_email(email).await;
+        self.handle_user(user, password)
+    }
+
+    pub async fn get_user_by_username(
+        self,
+        username: String,
+        password: String,
+    ) -> ApplicationResult<User> {
+        let user = self.user_repository.get_user_by_username(username).await;
         self.handle_user(user, password)
     }
 
