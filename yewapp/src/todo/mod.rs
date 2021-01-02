@@ -1,8 +1,8 @@
 mod gql;
 
 use gql::{
-    all_todos, create_new_todo, create_todo, fetch_all_todos, toggle_complete_all_todos,
-    toggle_complete_todo, FetchError,
+    all_todos, create_new_todo, create_todo, fetch_all_todos, remove_todo,
+    toggle_complete_all_todos, toggle_complete_todo, FetchError,
 };
 
 use strum::IntoEnumIterator;
@@ -17,6 +17,7 @@ pub enum TodoFetchState {
     CreateTodoSuccess(create_new_todo::CreateNewTodoCreateTodo),
     CompleteTodoSuccess(bool),
     CompleteAllTodoSuccess(bool),
+    DeleteTodoSuccess(bool),
     Failed(FetchError),
 }
 
@@ -148,7 +149,14 @@ impl Component for TodoApp {
                 });
             }
             TodoMessage::Delete(index) => {
-                self.state.remove(index);
+                let item = self.state.list.get_mut(index).unwrap();
+                let id = item.id;
+                self.link.send_future(async move {
+                    match remove_todo(id).await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Edit(index) => {
                 let item = self.state.list.get_mut(index).unwrap();
@@ -213,6 +221,9 @@ impl Component for TodoApp {
                 self.link.send_future(fetch_all());
             }
             TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(_)) => {
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(_)) => {
                 self.link.send_future(fetch_all());
             }
             TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
