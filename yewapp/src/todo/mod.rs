@@ -1,8 +1,9 @@
 mod gql;
 
+use crate::utils::FetchError;
 use gql::{
     all_todos, create_new_todo, create_todo, fetch_all_todos, remove_completed_todo, remove_todo,
-    toggle_complete_all_todos, toggle_complete_todo, update_todo, update_todo_query, FetchError,
+    toggle_complete_all_todos, toggle_complete_todo, update_todo, update_todo_query,
 };
 
 use strum::IntoEnumIterator;
