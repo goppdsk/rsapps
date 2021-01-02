@@ -13,5 +13,14 @@ cargo install cargo-make
 ## Format and lint
 
 ```bash
+cargo make format
 cargo make lint
 ```
+
+## Run in docker
+
+```bash
+docker-compose up -d
+```
+
+Then, access `localhost:8080`.
