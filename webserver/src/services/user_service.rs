@@ -17,20 +17,22 @@ impl UserService {
     }
 
     pub async fn sign_up(self, username: String, password: String) -> ApplicationResult<User> {
-        let user = match self
+        match self
             .user_repository
             .get_user_by_username(username.to_owned())
             .await
         {
-            Ok(user) => match user {
-                Some(user) => user,
-                None => {
-                    return Err(ApplicationError {
-                        code: ErrorCode::NotFound,
-                        message: "user is not registered".to_owned(),
-                    })
+            Ok(user) => {
+                if let Some(user) = user {
+                    if user.username == username {
+                        return Err(ApplicationError {
+                            code: ErrorCode::Conflict,
+                            message: "failed to create user, because of duplicated username"
+                                .to_owned(),
+                        });
+                    }
                 }
-            },
+            }
             Err(err) => {
                 return Err(ApplicationError {
                     code: ErrorCode::SystemError,
@@ -38,12 +40,7 @@ impl UserService {
                 })
             }
         };
-        if user.username == username {
-            return Err(ApplicationError {
-                code: ErrorCode::Conflict,
-                message: "failed to create user, because of duplicated username".to_owned(),
-            });
-        }
+
         let now = chrono::Utc::now();
         let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
         let new_user = User {
