@@ -1,0 +1,334 @@
+{
+  "db": "PostgreSQL",
+  "1f412bf04e55df3bda019495d737027ac5a41dbb049ce72961fd9a364737e6aa": {
+    "query": "\nSELECT *\nFROM users\nWHERE id = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "password_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false
+      ]
+    }
+  },
+  "20562a2494a2ec435bbeb233d580ce7dec160bcdfa8b11d78ae0ed9905406b2b": {
+    "query": "\nSELECT *\nFROM users\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "password_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false
+      ]
+    }
+  },
+  "3fb7da1ba9fe4c532762c8744590ae8bb1765968e4c9a7cc37e6f8aa1f25a5a1": {
+    "query": "\nDELETE\nFROM todos\nWHERE complete = true\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "6db00b5d458d21f0a1b071c17d906c2805c21c770dcb33fdbdaed9bda4a128ea": {
+    "query": "\nSELECT *\nFROM todos\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "7a877deef296b08c3010a7c6c98e04d4336383186843f29518a0563b0f9df4c5": {
+    "query": "\nUPDATE todos\nSET complete = not complete, updated_at = $1\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "804a42708f086bdbb8a964b90a66f22c102de00c26d3e1831167fb486e0d8c10": {
+    "query": "\nUPDATE todos\nSET body = $1, complete = $2, updated_at = $3\nWHERE id = $4\nreturning *\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bool",
+          "Timestamptz",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "bf38ed5f5578e495c2225c52a59421345138080c0d7e3369eab8a4d6911a6932": {
+    "query": "\nDELETE\nFROM todos\nWHERE id = $1\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "bf7bdaaffd22a2c100d89772aedc2aa84fe2698802b9b1fce9c5fd2f8bcc8b53": {
+    "query": "\nINSERT INTO todos (body, complete, created_at, updated_at)\nVALUES ($1, $2, $3, $4)\nreturning *\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bool",
+          "Timestamptz",
+          "Timestamptz"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "edf0b79f682eee7b17be59040104d35af829c4bfb58edccd89e2259a143c46a6": {
+    "query": "\nUPDATE todos\nSET complete = not complete, updated_at = $1\nWHERE id = $2\n            ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "fd20b98e969e700c089847cf6d93ae68c2c395515bd47070d172e0a21d9c2718": {
+    "query": "\nSELECT *\nFROM users\nWHERE email = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "password_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false
+      ]
+    }
+  }
+}

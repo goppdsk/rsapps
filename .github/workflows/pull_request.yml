@@ -3,11 +3,12 @@ name: Pull Request
 on: pull_request
 
 jobs:
-  lint:
-    name: Format & Clippy
+  develop:
+    name: Development
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgres://postgres:P@ssw0rd!@localhost:15432/rsapps
+      GRAPHQL_ENDPOINT: /graphql
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -34,7 +35,7 @@ jobs:
 
       - name: Docker compose
         run: |
-          docker-compose up -d --build
+          docker-compose up -d --build rsapps_postgres
 
       - name: Install migration tool
         uses: actions-rs/cargo@v1

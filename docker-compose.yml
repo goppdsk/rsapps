@@ -16,6 +16,37 @@ services:
     volumes:
       - rsapps_postgres:/data/postgres
     restart: unless-stopped
+    networks:
+      - rsapps
+
+  rsapps_webserver:
+    container_name: rsapps_webserver
+    build:
+      context: webserver
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:P@ssw0rd!@rsapps_postgres:5432/rsapps
+    ports:
+      - 8081:8081
+    restart: unless-stopped
+    networks:
+      - rsapps
+
+  rsapps_yewapp:
+    container_name: rsapps_yewapp
+    build:
+      context: yewapp
+      dockerfile: Dockerfile
+      args:
+        GRAPHQL_ENDPOINT: http://localhost:8081/graphql
+    ports:
+      - 8080:80
+    restart: unless-stopped
+    networks:
+      - rsapps
 
 volumes:
   rsapps_postgres:
+
+networks:
+  rsapps:

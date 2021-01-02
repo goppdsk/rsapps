@@ -8,6 +8,8 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 
+static GRAPHQL_ENDPOINT: &str = std::env!("GRAPHQL_ENDPOINT");
+
 type DateTimeUtc = String;
 
 #[derive(GraphQLQuery)]
@@ -69,8 +71,7 @@ impl Error for FetchError {}
 
 pub async fn fetch_all_todos() -> Result<Vec<all_todos::AllTodosTodos>, FetchError> {
     let request_body = AllTodos::build_query(all_todos::Variables {});
-    let resp =
-        request::<all_todos::Variables>("http://localhost:8081/graphql", request_body).await?;
+    let resp = request::<all_todos::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<all_todos::ResponseData>>() {
         Ok(data) => match data.data {
@@ -89,8 +90,7 @@ pub async fn create_todo(
     let request_body = CreateNewTodo::build_query(create_new_todo::Variables {
         todo: create_new_todo::NewTodo { body },
     });
-    let resp = request::<create_new_todo::Variables>("http://localhost:8081/graphql", request_body)
-        .await?;
+    let resp = request::<create_new_todo::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<create_new_todo::ResponseData>>() {
         Ok(data) => match data.data {
@@ -113,9 +113,7 @@ pub async fn update_todo(
     let request_body = UpdateTodoQuery::build_query(update_todo_query::Variables {
         todo: update_todo_query::UpdatedTodo { id, body, complete },
     });
-    let resp =
-        request::<update_todo_query::Variables>("http://localhost:8081/graphql", request_body)
-            .await?;
+    let resp = request::<update_todo_query::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<update_todo_query::ResponseData>>() {
         Ok(data) => match data.data {
@@ -132,8 +130,7 @@ pub async fn update_todo(
 
 pub async fn toggle_complete_todo(id: i64) -> Result<bool, FetchError> {
     let request_body = ToggleComplete::build_query(toggle_complete::Variables { id });
-    let resp = request::<toggle_complete::Variables>("http://localhost:8081/graphql", request_body)
-        .await?;
+    let resp = request::<toggle_complete::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<toggle_complete::ResponseData>>() {
         Ok(data) => match data.data {
@@ -150,9 +147,7 @@ pub async fn toggle_complete_todo(id: i64) -> Result<bool, FetchError> {
 
 pub async fn toggle_complete_all_todos() -> Result<bool, FetchError> {
     let request_body = ToggleAllComplete::build_query(toggle_all_complete::Variables {});
-    let resp =
-        request::<toggle_all_complete::Variables>("http://localhost:8081/graphql", request_body)
-            .await?;
+    let resp = request::<toggle_all_complete::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<toggle_all_complete::ResponseData>>() {
         Ok(data) => match data.data {
@@ -169,8 +164,7 @@ pub async fn toggle_complete_all_todos() -> Result<bool, FetchError> {
 
 pub async fn remove_todo(id: i64) -> Result<bool, FetchError> {
     let request_body = DeleteTodo::build_query(delete_todo::Variables { id });
-    let resp =
-        request::<delete_todo::Variables>("http://localhost:8081/graphql", request_body).await?;
+    let resp = request::<delete_todo::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<delete_todo::ResponseData>>() {
         Ok(data) => match data.data {
@@ -187,9 +181,7 @@ pub async fn remove_todo(id: i64) -> Result<bool, FetchError> {
 
 pub async fn remove_completed_todo() -> Result<bool, FetchError> {
     let request_body = ClearCompletedTodo::build_query(clear_completed_todo::Variables {});
-    let resp =
-        request::<clear_completed_todo::Variables>("http://localhost:8081/graphql", request_body)
-            .await?;
+    let resp = request::<clear_completed_todo::Variables>(request_body).await?;
 
     match resp.into_serde::<graphql_client::Response<clear_completed_todo::ResponseData>>() {
         Ok(data) => match data.data {
@@ -205,7 +197,6 @@ pub async fn remove_completed_todo() -> Result<bool, FetchError> {
 }
 
 pub async fn request<V: serde::Serialize>(
-    url: &str,
     query: graphql_client::QueryBody<V>,
 ) -> Result<JsValue, FetchError> {
     let json_body = json!(query);
@@ -220,7 +211,7 @@ pub async fn request<V: serde::Serialize>(
     opts.mode(RequestMode::Cors);
     opts.body(Some(JsValue::from_str(json_body.to_string().as_str())).as_ref());
     opts.headers(&headers);
-    let request = Request::new_with_str_and_init(url, &opts)?;
+    let request = Request::new_with_str_and_init(GRAPHQL_ENDPOINT, &opts)?;
 
     let window = yew::utils::window();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;

@@ -279,13 +279,15 @@ async fn fetch_all() -> TodoMessage {
 
 impl TodoApp {
     fn render_main(&self) -> Html {
-        let list = self
+        let mut list = self
             .state
             .list
             .iter()
             .filter(|item| self.state.filter.fits(*item))
             .cloned()
             .collect::<Vec<TodoModel>>();
+
+        list.sort_by_key(|item| item.id);
 
         html! {
             <>
@@ -452,12 +454,13 @@ impl TodoState {
     }
 
     fn get_filtered_index(&mut self, index: usize) -> usize {
-        let list = self
+        let mut list = self
             .list
             .iter()
             .enumerate()
             .filter(|&(_, item)| self.filter.fits(item))
             .collect::<Vec<_>>();
+        list.sort_by_key(|pair| pair.1.id);
         let &(index, _) = list.get(index).unwrap();
         index
     }

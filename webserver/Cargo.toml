@@ -17,7 +17,7 @@ jsonwebtoken = "7"
 juniper = "0.15"
 lazy_static = "1.4.0"
 serde = {version = "1.0", features = ["derive"]}
-sqlx = {version = "0.4", features = ["postgres", "runtime-async-std-native-tls", "chrono"]}
+sqlx = {version = "0.4", features = ["postgres", "runtime-async-std-native-tls", "chrono", "offline"]}
 strum = {version = "0.20", features = ["derive"]}
 tide = "0.15"
 

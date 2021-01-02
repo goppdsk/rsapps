@@ -6,6 +6,10 @@
 - [trunk](https://github.com/thedodd/trunk)
 - [strum](https://docs.rs/strum/0.20.0/strum/index.html)
 
+```bash
+cargo install trunk
+```
+
 ## Build
 
 ```bash
