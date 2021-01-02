@@ -66,4 +66,14 @@ impl TodoService {
             }),
         }
     }
+
+    pub async fn clear_completed_todo(&self) -> ApplicationResult<bool> {
+        match self.todo_repository.delete_completed_todo().await {
+            Ok(ret) => Ok(ret),
+            Err(err) => Err(ApplicationError {
+                code: ErrorCode::SystemError,
+                message: format!("failed to delete all completed todos, error: {:}", err),
+            }),
+        }
+    }
 }

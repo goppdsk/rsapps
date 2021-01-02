@@ -39,6 +39,13 @@ pub struct ToggleAllComplete;
 )]
 pub struct DeleteTodo;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "gql/schema.json",
+    query_path = "gql/clear_completed_todo.graphql"
+)]
+pub struct ClearCompletedTodo;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct FetchError {
     pub err: JsValue,
@@ -139,6 +146,25 @@ pub async fn remove_todo(id: i64) -> Result<bool, FetchError> {
         },
         Err(_) => Err(FetchError {
             err: JsValue::from_str(format!("failed to delete todo, id: {}", id).as_str()),
+        }),
+    }
+}
+
+pub async fn remove_completed_todo() -> Result<bool, FetchError> {
+    let request_body = ClearCompletedTodo::build_query(clear_completed_todo::Variables {});
+    let resp =
+        request::<clear_completed_todo::Variables>("http://localhost:8081/graphql", request_body)
+            .await?;
+
+    match resp.into_serde::<graphql_client::Response<clear_completed_todo::ResponseData>>() {
+        Ok(data) => match data.data {
+            Some(data) => Ok(data.clear_completed_todo),
+            None => Err(FetchError {
+                err: JsValue::from_str("failed to delete completed todos"),
+            }),
+        },
+        Err(_) => Err(FetchError {
+            err: JsValue::from_str("failed to delete completed todos"),
         }),
     }
 }

@@ -50,4 +50,12 @@ impl MutationRoot {
             Err(err) => Err(err.into_field_error()),
         }
     }
+
+    #[graphql(name = "clearCompletedTodo", description = "Delete all completed todo")]
+    async fn clear_completed_todo(context: &State) -> FieldResult<bool> {
+        match context.todo_service.clone().clear_completed_todo().await {
+            Ok(ret) => Ok(ret),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
 }

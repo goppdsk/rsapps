@@ -20,6 +20,8 @@ pub trait TodoRepository: DynClone {
     ) -> anyhow::Result<bool>;
 
     async fn delete_todo(&self, id: i32) -> anyhow::Result<bool>;
+
+    async fn delete_completed_todo(&self) -> anyhow::Result<bool>;
 }
 
 dyn_clone::clone_trait_object!(TodoRepository);

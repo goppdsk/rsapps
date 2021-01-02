@@ -1,7 +1,7 @@
 mod gql;
 
 use gql::{
-    all_todos, create_new_todo, create_todo, fetch_all_todos, remove_todo,
+    all_todos, create_new_todo, create_todo, fetch_all_todos, remove_completed_todo, remove_todo,
     toggle_complete_all_todos, toggle_complete_todo, FetchError,
 };
 
@@ -18,6 +18,7 @@ pub enum TodoFetchState {
     CompleteTodoSuccess(bool),
     CompleteAllTodoSuccess(bool),
     DeleteTodoSuccess(bool),
+    DeleteCompletedTodoSuccess(bool),
     Failed(FetchError),
 }
 
@@ -116,13 +117,14 @@ impl Component for TodoApp {
                 self.state.text = value;
             }
             TodoMessage::ClearCompleted => {
-                self.state.list = self
-                    .state
-                    .list
-                    .iter()
-                    .filter(|item| !item.complete)
-                    .cloned()
-                    .collect::<Vec<TodoModel>>();
+                self.link.send_future(async {
+                    match remove_completed_todo().await {
+                        Ok(ret) => {
+                            TodoMessage::Fetch(TodoFetchState::DeleteCompletedTodoSuccess(ret))
+                        }
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Add => {
                 let text = self.state.text.trim().to_owned();
@@ -139,31 +141,35 @@ impl Component for TodoApp {
                 });
             }
             TodoMessage::Toggle(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
-                let id = item.id;
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
+                let itemId = item.id;
                 self.link.send_future(async move {
-                    match toggle_complete_todo(id).await {
+                    match toggle_complete_todo(itemId).await {
                         Ok(ret) => TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(ret)),
                         Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
                     }
                 });
             }
             TodoMessage::Delete(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
-                let id = item.id;
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
+                let itemId = item.id;
                 self.link.send_future(async move {
-                    match remove_todo(id).await {
+                    match remove_todo(itemId).await {
                         Ok(ret) => TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(ret)),
                         Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
                     }
                 });
             }
             TodoMessage::Edit(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 item.editing = true;
             }
             TodoMessage::ChangeEditInput(index, value) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 let text = value.trim().to_owned();
                 item.body = text;
             }
@@ -176,10 +182,11 @@ impl Component for TodoApp {
                     .body
                     .trim()
                     .to_owned();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 if body.is_empty() {
-                    self.state.remove(index);
+                    self.link.send_message(TodoMessage::Delete(id));
                 }
-                let item = self.state.list.get_mut(index).unwrap();
                 item.editing = false;
             }
             TodoMessage::ToggleAll => {
@@ -194,7 +201,8 @@ impl Component for TodoApp {
                 self.state.filter = filter;
             }
             TodoMessage::CancelEdit(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 item.editing = false;
             }
             TodoMessage::Focus => {
@@ -217,13 +225,10 @@ impl Component for TodoApp {
                 self.state.text = "".to_string();
                 self.link.send_future(fetch_all());
             }
-            TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(_)) => {
-                self.link.send_future(fetch_all());
-            }
-            TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(_)) => {
-                self.link.send_future(fetch_all());
-            }
-            TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(_)) => {
+            TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::DeleteCompletedTodoSuccess(_)) => {
                 self.link.send_future(fetch_all());
             }
             TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
@@ -439,7 +444,7 @@ impl TodoState {
         self.list.iter().all(|item| item.complete)
     }
 
-    fn remove(&mut self, index: usize) {
+    fn get_filtered_index(&mut self, index: usize) -> usize {
         let list = self
             .list
             .iter()
@@ -447,6 +452,6 @@ impl TodoState {
             .filter(|&(_, item)| self.filter.fits(item))
             .collect::<Vec<_>>();
         let &(index, _) = list.get(index).unwrap();
-        self.list.remove(index);
+        index
     }
 }

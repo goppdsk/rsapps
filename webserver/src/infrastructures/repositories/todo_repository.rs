@@ -89,4 +89,18 @@ WHERE id = $1
         .await?;
         Ok(true)
     }
+
+    async fn delete_completed_todo(&self) -> anyhow::Result<bool> {
+        sqlx::query_as!(
+            Todo,
+            "
+DELETE
+FROM todos
+WHERE complete = true
+            ",
+        )
+        .execute(&self.db)
+        .await?;
+        Ok(true)
+    }
 }
