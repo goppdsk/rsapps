@@ -1,6 +1,5 @@
 use graphql_client::GraphQLQuery;
 use serde_json::json;
-use std::env;
 use std::error::Error;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
@@ -8,6 +7,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
+
+static GRAPHQL_ENDPOINT: &str = std::env!("GRAPHQL_ENDPOINT");
 
 type DateTimeUtc = String;
 
@@ -210,7 +211,7 @@ pub async fn request<V: serde::Serialize>(
     opts.mode(RequestMode::Cors);
     opts.body(Some(JsValue::from_str(json_body.to_string().as_str())).as_ref());
     opts.headers(&headers);
-    let request = Request::new_with_str_and_init("/graphql", &opts)?;
+    let request = Request::new_with_str_and_init(GRAPHQL_ENDPOINT, &opts)?;
 
     let window = yew::utils::window();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;

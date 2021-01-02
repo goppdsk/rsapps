@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgres://postgres:P@ssw0rd!@localhost:15432/rsapps
+      GRAPHQL_ENDPOINT: /graphql
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

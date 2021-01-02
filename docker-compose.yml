@@ -37,6 +37,8 @@ services:
     build:
       context: yewapp
       dockerfile: Dockerfile
+      args:
+        GRAPHQL_ENDPOINT: http://localhost:8081/graphql
     ports:
       - 8080:80
     restart: unless-stopped

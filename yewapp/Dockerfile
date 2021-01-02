@@ -12,6 +12,8 @@ RUN rm src/*.rs
 ADD . ./
 
 RUN rm ./target/release/deps/yewapp*
+ARG GRAPHQL_ENDPOINT
+ENV GRAPHQL_ENDPOINT=${GRAPHQL_ENDPOINT}
 RUN trunk build --release 
 
 FROM nginx:1.19.6-alpine
