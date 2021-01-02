@@ -38,6 +38,24 @@ returning *
         .await?)
     }
 
+    async fn update_todo(&self, todo: Todo) -> anyhow::Result<Todo> {
+        Ok(sqlx::query_as!(
+            Todo,
+            "
+UPDATE todos
+SET body = $1, complete = $2, updated_at = $3
+WHERE id = $4
+returning *
+            ",
+            todo.body,
+            todo.complete,
+            todo.updated_at,
+            todo.id,
+        )
+        .fetch_one(&self.db)
+        .await?)
+    }
+
     async fn toggle_complete(
         &self,
         id: i32,

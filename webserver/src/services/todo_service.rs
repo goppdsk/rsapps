@@ -30,7 +30,17 @@ impl TodoService {
             Ok(created) => Ok(created),
             Err(err) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
-                message: format!("failed to fetch todos, error: {:}", err),
+                message: format!("failed to create todo, error: {:}", err),
+            }),
+        }
+    }
+
+    pub async fn update_todo(&self, todo: Todo) -> ApplicationResult<Todo> {
+        match self.todo_repository.update_todo(todo).await {
+            Ok(updated) => Ok(updated),
+            Err(err) => Err(ApplicationError {
+                code: ErrorCode::SystemError,
+                message: format!("failed to update todo, error: {:}", err),
             }),
         }
     }

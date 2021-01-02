@@ -15,7 +15,10 @@ type DateTimeUtc = String;
 pub struct AllTodos;
 
 #[derive(GraphQLQuery)]
-#[graphql(schema_path = "gql/schema.json", query_path = "gql/new_todo.graphql")]
+#[graphql(
+    schema_path = "gql/schema.json",
+    query_path = "gql/create_new_todo.graphql"
+)]
 pub struct CreateNewTodo;
 
 #[derive(GraphQLQuery)]
@@ -45,6 +48,13 @@ pub struct DeleteTodo;
     query_path = "gql/clear_completed_todo.graphql"
 )]
 pub struct ClearCompletedTodo;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "gql/schema.json",
+    query_path = "gql/update_todo.graphql"
+)]
+pub struct UpdateTodoQuery;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FetchError {
@@ -91,6 +101,31 @@ pub async fn create_todo(
         },
         Err(_) => Err(FetchError {
             err: JsValue::from_str("failed to create new todo"),
+        }),
+    }
+}
+
+pub async fn update_todo(
+    id: i64,
+    body: String,
+    complete: bool,
+) -> Result<update_todo_query::UpdateTodoQueryUpdateTodo, FetchError> {
+    let request_body = UpdateTodoQuery::build_query(update_todo_query::Variables {
+        todo: update_todo_query::UpdatedTodo { id, body, complete },
+    });
+    let resp =
+        request::<update_todo_query::Variables>("http://localhost:8081/graphql", request_body)
+            .await?;
+
+    match resp.into_serde::<graphql_client::Response<update_todo_query::ResponseData>>() {
+        Ok(data) => match data.data {
+            Some(data) => Ok(data.update_todo),
+            None => Err(FetchError {
+                err: JsValue::from_str("failed to update todo"),
+            }),
+        },
+        Err(_) => Err(FetchError {
+            err: JsValue::from_str("failed to update todo"),
         }),
     }
 }

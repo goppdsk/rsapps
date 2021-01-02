@@ -8,6 +8,8 @@ pub trait TodoRepository: DynClone {
 
     async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo>;
 
+    async fn update_todo(&self, todo: Todo) -> anyhow::Result<Todo>;
+
     async fn toggle_complete(
         &self,
         id: i32,
