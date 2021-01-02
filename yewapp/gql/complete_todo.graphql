@@ -1,0 +1,3 @@
+mutation ToggleComplete($id: Int!) {
+  toggleComplete(id: $id)
+}

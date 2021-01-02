@@ -1,6 +1,9 @@
 mod gql;
 
-use gql::{all_todos, create_new_todo, create_todo, fetch_all_todos, FetchError};
+use gql::{
+    all_todos, create_new_todo, create_todo, fetch_all_todos, toggle_complete_all_todos,
+    toggle_complete_todo, FetchError,
+};
 
 use strum::IntoEnumIterator;
 use wasm_bindgen::prelude::*;
@@ -12,6 +15,8 @@ use yewtil::future::LinkFuture;
 pub enum TodoFetchState {
     FetchAllTodosSuccess(Vec<all_todos::AllTodosTodos>),
     CreateTodoSuccess(create_new_todo::CreateNewTodoCreateTodo),
+    CompleteTodoSuccess(bool),
+    CompleteAllTodoSuccess(bool),
     Failed(FetchError),
 }
 
@@ -134,7 +139,13 @@ impl Component for TodoApp {
             }
             TodoMessage::Toggle(index) => {
                 let item = self.state.list.get_mut(index).unwrap();
-                item.complete = !item.complete;
+                let id = item.id;
+                self.link.send_future(async move {
+                    match toggle_complete_todo(id).await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Delete(index) => {
                 self.state.remove(index);
@@ -163,9 +174,14 @@ impl Component for TodoApp {
                 let item = self.state.list.get_mut(index).unwrap();
                 item.editing = false;
             }
-            TodoMessage::ToggleAll => self.state.list.iter_mut().for_each(|item| {
-                item.complete = !item.complete;
-            }),
+            TodoMessage::ToggleAll => {
+                self.link.send_future(async {
+                    match toggle_complete_all_todos().await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
+            }
             TodoMessage::SetFilter(filter) => {
                 self.state.filter = filter;
             }
@@ -191,6 +207,12 @@ impl Component for TodoApp {
             }
             TodoMessage::Fetch(TodoFetchState::CreateTodoSuccess(_)) => {
                 self.state.text = "".to_string();
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(_)) => {
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(_)) => {
                 self.link.send_future(fetch_all());
             }
             TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
