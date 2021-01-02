@@ -22,20 +22,20 @@ FROM todos
     }
 
     async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo> {
-        sqlx::query_as!(
+        Ok(sqlx::query_as!(
             Todo,
             "
 INSERT INTO todos (body, complete, created_at, updated_at)
 VALUES ($1, $2, $3, $4)
+returning *
             ",
             todo.body,
             todo.complete,
             todo.created_at,
             todo.updated_at,
         )
-        .execute(&self.db)
-        .await?;
-        Ok(todo)
+        .fetch_one(&self.db)
+        .await?)
     }
 
     async fn toggle_complete(

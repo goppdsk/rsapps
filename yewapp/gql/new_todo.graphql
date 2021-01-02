@@ -1,0 +1,5 @@
+mutation CreateNewTodo($todo: NewTodo!) {
+  createTodo(newTodo: $todo) {
+    id
+  }
+}
