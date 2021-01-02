@@ -1,10 +1,37 @@
+mod gql;
+
+use gql::{
+    all_todos, create_new_todo, create_todo, fetch_all_todos, remove_completed_todo, remove_todo,
+    toggle_complete_all_todos, toggle_complete_todo, update_todo, update_todo_query, FetchError,
+};
+
 use strum::IntoEnumIterator;
+use wasm_bindgen::prelude::*;
 use yew::events::{InputData, KeyboardEvent};
 use yew::prelude::*;
 use yew::web_sys::HtmlInputElement;
+use yewtil::future::LinkFuture;
+
+pub enum TodoFetchState {
+    FetchAllTodosSuccess(Vec<all_todos::AllTodosTodos>),
+    CreateTodoSuccess(create_new_todo::CreateNewTodoCreateTodo),
+    CompleteTodoSuccess(bool),
+    CompleteAllTodoSuccess(bool),
+    DeleteTodoSuccess(bool),
+    DeleteCompletedTodoSuccess(bool),
+    UpdateTodoSuccess(update_todo_query::UpdateTodoQueryUpdateTodo),
+    Failed(FetchError),
+}
+
+impl From<JsValue> for FetchError {
+    fn from(value: JsValue) -> Self {
+        Self { err: value }
+    }
+}
 
 #[derive(Clone, PartialEq)]
 struct TodoModel {
+    id: i64,
     body: String,
     complete: bool,
     editing: bool,
@@ -23,6 +50,7 @@ pub enum TodoMessage {
     SetFilter(Filter),
     CancelEdit(usize),
     Focus,
+    Fetch(TodoFetchState),
     None,
 }
 
@@ -70,7 +98,7 @@ impl Component for TodoApp {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        TodoApp {
+        let app = TodoApp {
             state: TodoState {
                 text: "".to_owned(),
                 list: vec![],
@@ -79,7 +107,9 @@ impl Component for TodoApp {
             },
             link,
             edit_ref: NodeRef::default(),
-        }
+        };
+        app.link.send_future(fetch_all());
+        app
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
@@ -88,71 +118,128 @@ impl Component for TodoApp {
                 self.state.text = value;
             }
             TodoMessage::ClearCompleted => {
-                self.state.list = self
-                    .state
-                    .list
-                    .iter()
-                    .filter(|item| !item.complete)
-                    .cloned()
-                    .collect::<Vec<TodoModel>>();
+                self.link.send_future(async {
+                    match remove_completed_todo().await {
+                        Ok(ret) => {
+                            TodoMessage::Fetch(TodoFetchState::DeleteCompletedTodoSuccess(ret))
+                        }
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Add => {
                 let text = self.state.text.trim().to_owned();
                 if text.is_empty() {
                     return false;
                 }
-                self.state.list.push(TodoModel {
-                    body: text,
-                    complete: false,
-                    editing: false,
+                self.link.send_future(async {
+                    match create_todo(text).await {
+                        Ok(new_todo) => {
+                            TodoMessage::Fetch(TodoFetchState::CreateTodoSuccess(new_todo))
+                        }
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
                 });
-                self.state.text = "".to_string();
             }
             TodoMessage::Toggle(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
-                item.complete = !item.complete;
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
+                let item_id = item.id;
+                self.link.send_future(async move {
+                    match toggle_complete_todo(item_id).await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Delete(index) => {
-                self.state.remove(index);
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
+                let item_id = item.id;
+                self.link.send_future(async move {
+                    match remove_todo(item_id).await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
             }
             TodoMessage::Edit(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 item.editing = true;
             }
             TodoMessage::ChangeEditInput(index, value) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 let text = value.trim().to_owned();
                 item.body = text;
             }
             TodoMessage::Update(index) => {
-                let body = self
-                    .state
-                    .list
-                    .get_mut(index)
-                    .unwrap()
-                    .body
-                    .trim()
-                    .to_owned();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
+                let body = item.body.trim().to_owned();
                 if body.is_empty() {
-                    self.state.remove(index);
+                    self.link.send_message(TodoMessage::Delete(id));
                 }
-                let item = self.state.list.get_mut(index).unwrap();
+                let item_id = item.id;
+                let complete = item.complete;
+                self.link.send_future(async move {
+                    match update_todo(item_id, body, complete).await {
+                        Ok(updated_todo) => {
+                            TodoMessage::Fetch(TodoFetchState::UpdateTodoSuccess(updated_todo))
+                        }
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
                 item.editing = false;
             }
-            TodoMessage::ToggleAll => self.state.list.iter_mut().for_each(|item| {
-                item.complete = !item.complete;
-            }),
+            TodoMessage::ToggleAll => {
+                self.link.send_future(async {
+                    match toggle_complete_all_todos().await {
+                        Ok(ret) => TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(ret)),
+                        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
+                    }
+                });
+            }
             TodoMessage::SetFilter(filter) => {
                 self.state.filter = filter;
             }
             TodoMessage::CancelEdit(index) => {
-                let item = self.state.list.get_mut(index).unwrap();
+                let id = self.state.get_filtered_index(index);
+                let item = self.state.list.get_mut(id).unwrap();
                 item.editing = false;
             }
             TodoMessage::Focus => {
                 if let Some(elem) = self.edit_ref.cast::<HtmlInputElement>() {
                     elem.focus().unwrap();
                 }
+            }
+            TodoMessage::Fetch(TodoFetchState::FetchAllTodosSuccess(todos)) => {
+                self.state.list = todos
+                    .iter()
+                    .map(|todo| TodoModel {
+                        id: todo.id,
+                        body: todo.body.to_owned(),
+                        complete: todo.complete,
+                        editing: false,
+                    })
+                    .collect::<Vec<TodoModel>>();
+            }
+            TodoMessage::Fetch(TodoFetchState::CreateTodoSuccess(_)) => {
+                self.state.text = "".to_string();
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::UpdateTodoSuccess(_)) => {
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::CompleteTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::CompleteAllTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::DeleteTodoSuccess(_))
+            | TodoMessage::Fetch(TodoFetchState::DeleteCompletedTodoSuccess(_)) => {
+                self.link.send_future(fetch_all());
+            }
+            TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
+                yew::web_sys::console::log_1(&err.err);
             }
             TodoMessage::None => return false,
         }
@@ -180,6 +267,13 @@ impl Component for TodoApp {
                 </footer>
             </div>
         }
+    }
+}
+
+async fn fetch_all() -> TodoMessage {
+    match fetch_all_todos().await {
+        Ok(todos) => TodoMessage::Fetch(TodoFetchState::FetchAllTodosSuccess(todos)),
+        Err(err) => TodoMessage::Fetch(TodoFetchState::Failed(err)),
     }
 }
 
@@ -319,6 +413,7 @@ impl TodoApp {
                 onkeypress=self.link.callback(move |e: KeyboardEvent| {
                     if e.key() == "Enter" { TodoMessage::Update(index) } else { TodoMessage::None }
                 })
+                // Force move forcus.
                 onmouseover=self.link.callback(|_| TodoMessage::Focus)
                 onblur=self.link.callback(move |_| TodoMessage::CancelEdit(index))
             />
@@ -356,7 +451,7 @@ impl TodoState {
         self.list.iter().all(|item| item.complete)
     }
 
-    fn remove(&mut self, index: usize) {
+    fn get_filtered_index(&mut self, index: usize) -> usize {
         let list = self
             .list
             .iter()
@@ -364,6 +459,6 @@ impl TodoState {
             .filter(|&(_, item)| self.filter.fits(item))
             .collect::<Vec<_>>();
         let &(index, _) = list.get(index).unwrap();
-        self.list.remove(index);
+        index
     }
 }

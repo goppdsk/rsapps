@@ -8,6 +8,8 @@ pub trait TodoRepository: DynClone {
 
     async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo>;
 
+    async fn update_todo(&self, todo: Todo) -> anyhow::Result<Todo>;
+
     async fn toggle_complete(
         &self,
         id: i32,
@@ -20,6 +22,8 @@ pub trait TodoRepository: DynClone {
     ) -> anyhow::Result<bool>;
 
     async fn delete_todo(&self, id: i32) -> anyhow::Result<bool>;
+
+    async fn delete_completed_todo(&self) -> anyhow::Result<bool>;
 }
 
 dyn_clone::clone_trait_object!(TodoRepository);

@@ -30,7 +30,17 @@ impl TodoService {
             Ok(created) => Ok(created),
             Err(err) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
-                message: format!("failed to fetch todos, error: {:}", err),
+                message: format!("failed to create todo, error: {:}", err),
+            }),
+        }
+    }
+
+    pub async fn update_todo(&self, todo: Todo) -> ApplicationResult<Todo> {
+        match self.todo_repository.update_todo(todo).await {
+            Ok(updated) => Ok(updated),
+            Err(err) => Err(ApplicationError {
+                code: ErrorCode::SystemError,
+                message: format!("failed to update todo, error: {:}", err),
             }),
         }
     }
@@ -63,6 +73,16 @@ impl TodoService {
             Err(err) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
                 message: format!("failed to complete all todos, error: {:}", err),
+            }),
+        }
+    }
+
+    pub async fn clear_completed_todo(&self) -> ApplicationResult<bool> {
+        match self.todo_repository.delete_completed_todo().await {
+            Ok(ret) => Ok(ret),
+            Err(err) => Err(ApplicationError {
+                code: ErrorCode::SystemError,
+                message: format!("failed to delete all completed todos, error: {:}", err),
             }),
         }
     }

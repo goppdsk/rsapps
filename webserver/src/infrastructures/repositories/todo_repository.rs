@@ -22,20 +22,38 @@ FROM todos
     }
 
     async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo> {
-        sqlx::query_as!(
+        Ok(sqlx::query_as!(
             Todo,
             "
 INSERT INTO todos (body, complete, created_at, updated_at)
 VALUES ($1, $2, $3, $4)
+returning *
             ",
             todo.body,
             todo.complete,
             todo.created_at,
             todo.updated_at,
         )
-        .execute(&self.db)
-        .await?;
-        Ok(todo)
+        .fetch_one(&self.db)
+        .await?)
+    }
+
+    async fn update_todo(&self, todo: Todo) -> anyhow::Result<Todo> {
+        Ok(sqlx::query_as!(
+            Todo,
+            "
+UPDATE todos
+SET body = $1, complete = $2, updated_at = $3
+WHERE id = $4
+returning *
+            ",
+            todo.body,
+            todo.complete,
+            todo.updated_at,
+            todo.id,
+        )
+        .fetch_one(&self.db)
+        .await?)
     }
 
     async fn toggle_complete(
@@ -84,6 +102,20 @@ FROM todos
 WHERE id = $1
             ",
             id
+        )
+        .execute(&self.db)
+        .await?;
+        Ok(true)
+    }
+
+    async fn delete_completed_todo(&self) -> anyhow::Result<bool> {
+        sqlx::query_as!(
+            Todo,
+            "
+DELETE
+FROM todos
+WHERE complete = true
+            ",
         )
         .execute(&self.db)
         .await?;

@@ -1,0 +1,5 @@
+mutation UpdateTodoQuery($todo: UpdatedTodo!) {
+  updateTodo(updatedTodo: $todo) {
+    id
+  }
+}

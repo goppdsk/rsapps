@@ -9,9 +9,16 @@ struct NewTodo {
     body: String,
 }
 
+#[derive(juniper::GraphQLInputObject)]
+struct UpdatedTodo {
+    id: i32,
+    body: String,
+    complete: bool,
+}
+
 #[graphql_object(Context = State)]
 impl MutationRoot {
-    #[graphql(description = "Get all todos")]
+    #[graphql(description = "Create new todo")]
     async fn create_todo(context: &State, new_todo: NewTodo) -> FieldResult<Todo> {
         let now = chrono::Utc::now();
         let todo = Todo {
@@ -23,6 +30,22 @@ impl MutationRoot {
         };
         match context.todo_service.clone().create_todo(todo).await {
             Ok(created) => Ok(created),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
+
+    #[graphql(description = "Update todo")]
+    async fn update_todo(context: &State, updated_todo: UpdatedTodo) -> FieldResult<Todo> {
+        let now = chrono::Utc::now();
+        let todo = Todo {
+            id: updated_todo.id,
+            body: updated_todo.body,
+            complete: updated_todo.complete,
+            created_at: now,
+            updated_at: now,
+        };
+        match context.todo_service.clone().update_todo(todo).await {
+            Ok(updatde) => Ok(updatde),
             Err(err) => Err(err.into_field_error()),
         }
     }
@@ -46,6 +69,14 @@ impl MutationRoot {
     #[graphql(name = "deleteTodo", description = "Delete todo")]
     async fn delete_todo(context: &State, id: i32) -> FieldResult<bool> {
         match context.todo_service.clone().delete_todo(id).await {
+            Ok(ret) => Ok(ret),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
+
+    #[graphql(name = "clearCompletedTodo", description = "Delete all completed todo")]
+    async fn clear_completed_todo(context: &State) -> FieldResult<bool> {
+        match context.todo_service.clone().clear_completed_todo().await {
             Ok(ret) => Ok(ret),
             Err(err) => Err(err.into_field_error()),
         }
