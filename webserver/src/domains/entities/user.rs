@@ -3,7 +3,7 @@ use bcrypt::verify;
 #[derive(Clone)]
 pub struct User {
     pub id: i32,
-    pub username: Option<String>,
+    pub username: String,
     pub email: Option<String>,
     pub password_hash: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,
@@ -32,7 +32,7 @@ mod tests {
         let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
         let user = User {
             id: 1,
-            username: None,
+            username: "testuser".to_owned(),
             email: None,
             password_hash: Some(hash),
             created_at: now,
@@ -48,7 +48,7 @@ mod tests {
         let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();
         let user = User {
             id: 1,
-            username: None,
+            username: "testuser".to_owned(),
             email: None,
             password_hash: Some(hash),
             created_at: now,

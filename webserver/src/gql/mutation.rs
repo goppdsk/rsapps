@@ -1,4 +1,5 @@
 use crate::domains::entities::todo::Todo;
+use crate::domains::entities::user::User;
 use crate::State;
 use juniper::{FieldResult, IntoFieldError};
 
@@ -14,6 +15,12 @@ struct UpdatedTodo {
     id: i32,
     body: String,
     complete: bool,
+}
+
+#[derive(juniper::GraphQLInputObject)]
+struct NewUser {
+    username: String,
+    password: String,
 }
 
 #[graphql_object(Context = State)]
@@ -78,6 +85,19 @@ impl MutationRoot {
     async fn clear_completed_todo(context: &State) -> FieldResult<bool> {
         match context.todo_service.clone().clear_completed_todo().await {
             Ok(ret) => Ok(ret),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
+
+    #[graphql(name = "signUp", description = "Sign up user")]
+    async fn sing_up(context: &State, new_user: NewUser) -> FieldResult<User> {
+        match context
+            .user_service
+            .clone()
+            .sign_up(new_user.username, new_user.password)
+            .await
+        {
+            Ok(created) => Ok(created),
             Err(err) => Err(err.into_field_error()),
         }
     }

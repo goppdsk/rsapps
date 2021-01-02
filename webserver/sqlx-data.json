@@ -42,7 +42,7 @@
       },
       "nullable": [
         false,
-        true,
+        false,
         true,
         true,
         false,
@@ -90,7 +90,7 @@
       },
       "nullable": [
         false,
-        true,
+        false,
         true,
         true,
         false,
@@ -268,6 +268,56 @@
       ]
     }
   },
+  "c7f32f6eb8b2442882e3f323198df5981b42e6b4d1ebae276f0c7d25f8ca5233": {
+    "query": "\nSELECT *\nFROM users\nWHERE username = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "password_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ]
+    }
+  },
   "edf0b79f682eee7b17be59040104d35af829c4bfb58edccd89e2259a143c46a6": {
     "query": "\nUPDATE todos\nSET complete = not complete, updated_at = $1\nWHERE id = $2\n            ",
     "describe": {
@@ -279,6 +329,60 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "fb873488500f0ecf3ef66bda6655c97e3bab7ed322cbbfa141afadd6460a119b": {
+    "query": "\nINSERT INTO users (username, email, password_hash, created_at, updated_at)\nVALUES ($1, $2, $3, $4, $5)\nreturning *\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "password_hash",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Timestamptz",
+          "Timestamptz"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ]
     }
   },
   "fd20b98e969e700c089847cf6d93ae68c2c395515bd47070d172e0a21d9c2718": {
@@ -323,7 +427,7 @@
       },
       "nullable": [
         false,
-        true,
+        false,
         true,
         true,
         false,
