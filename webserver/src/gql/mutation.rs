@@ -27,15 +27,12 @@ struct NewUser {
 impl MutationRoot {
     #[graphql(description = "Create new todo")]
     async fn create_todo(context: &State, new_todo: NewTodo) -> FieldResult<Todo> {
-        let now = chrono::Utc::now();
-        let todo = Todo {
-            id: 0,
-            body: new_todo.body,
-            complete: false,
-            created_at: now,
-            updated_at: now,
-        };
-        match context.todo_service.clone().create_todo(todo).await {
+        match context
+            .todo_service
+            .clone()
+            .create_todo(new_todo.body)
+            .await
+        {
             Ok(created) => Ok(created),
             Err(err) => Err(err.into_field_error()),
         }
@@ -43,15 +40,12 @@ impl MutationRoot {
 
     #[graphql(description = "Update todo")]
     async fn update_todo(context: &State, updated_todo: UpdatedTodo) -> FieldResult<Todo> {
-        let now = chrono::Utc::now();
-        let todo = Todo {
-            id: updated_todo.id,
-            body: updated_todo.body,
-            complete: updated_todo.complete,
-            created_at: now,
-            updated_at: now,
-        };
-        match context.todo_service.clone().update_todo(todo).await {
+        match context
+            .todo_service
+            .clone()
+            .update_todo(updated_todo.id, updated_todo.body, updated_todo.complete)
+            .await
+        {
             Ok(updatde) => Ok(updatde),
             Err(err) => Err(err.into_field_error()),
         }
