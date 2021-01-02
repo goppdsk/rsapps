@@ -23,24 +23,26 @@ impl UserService {
             .await
         {
             Ok(user) => match user {
-                Some(user) => Ok(user),
-                None => Err(ApplicationError {
-                    code: ErrorCode::NotFound,
-                    message: "user is not registered".to_owned(),
-                }),
+                Some(user) => user,
+                None => {
+                    return Err(ApplicationError {
+                        code: ErrorCode::NotFound,
+                        message: "user is not registered".to_owned(),
+                    })
+                }
             },
-            Err(err) => Err(ApplicationError {
-                code: ErrorCode::SystemError,
-                message: format!("failed to fetch user, error: {:}", err),
-            }),
-        };
-        if let Ok(user) = user {
-            if user.username == username {
+            Err(err) => {
                 return Err(ApplicationError {
-                    code: ErrorCode::Conflict,
-                    message: "failed to create user, because of duplicated username".to_owned(),
-                });
+                    code: ErrorCode::SystemError,
+                    message: format!("failed to fetch user, error: {:}", err),
+                })
             }
+        };
+        if user.username == username {
+            return Err(ApplicationError {
+                code: ErrorCode::Conflict,
+                message: "failed to create user, because of duplicated username".to_owned(),
+            });
         }
         let now = chrono::Utc::now();
         let hash = bcrypt::hash(password, bcrypt::DEFAULT_COST).unwrap();

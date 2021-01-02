@@ -1,5 +1,5 @@
+use crate::auth::create_jwt;
 use crate::domains::entities::todo::Todo;
-use crate::domains::entities::user::User;
 use crate::State;
 use juniper::{FieldResult, IntoFieldError};
 
@@ -84,14 +84,18 @@ impl MutationRoot {
     }
 
     #[graphql(name = "signUp", description = "Sign up user")]
-    async fn sing_up(context: &State, new_user: NewUser) -> FieldResult<User> {
-        match context
+    async fn sing_up(context: &State, new_user: NewUser) -> FieldResult<String> {
+        let user = match context
             .user_service
             .clone()
             .sign_up(new_user.username, new_user.password)
             .await
         {
-            Ok(created) => Ok(created),
+            Ok(created) => created,
+            Err(err) => return Err(err.into_field_error()),
+        };
+        match create_jwt(user.id) {
+            Ok(jwt) => Ok(jwt),
             Err(err) => Err(err.into_field_error()),
         }
     }
