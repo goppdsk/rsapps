@@ -279,13 +279,15 @@ async fn fetch_all() -> TodoMessage {
 
 impl TodoApp {
     fn render_main(&self) -> Html {
-        let list = self
+        let mut list = self
             .state
             .list
             .iter()
             .filter(|item| self.state.filter.fits(*item))
             .cloned()
             .collect::<Vec<TodoModel>>();
+
+        list.sort_by_key(|item| item.id);
 
         html! {
             <>

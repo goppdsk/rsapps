@@ -5,6 +5,8 @@ Applications made by Rust
 ## Install cargo commands
 
 ```bash
+rustup component add rustfmt
+ustup component add clippy
 cargo install cargo-make
 ```
 
@@ -13,4 +15,3 @@ cargo install cargo-make
 ```bash
 cargo make lint
 ```
-

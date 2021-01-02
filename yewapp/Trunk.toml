@@ -1,0 +1,3 @@
+[[proxy]]
+rewrite = "http://localhost:8080/graphql"
+backend = "http://rsapps_webserver:8081/graphql"

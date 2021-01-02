@@ -22,3 +22,9 @@ docker-compose up -d
 cargo install --version=0.2.0 sqlx-cli --no-default-features --features postgres
 sqlx migrate run
 ```
+
+## Save database infromation
+
+```bash
+cargo sqlx prepare -- --bin rsapps-webserver
+```
