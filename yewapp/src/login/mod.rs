@@ -18,9 +18,15 @@ pub enum LoginFetchState {
     Failed(FetchError),
 }
 
+pub enum LoadingState {
+    Login,
+    SignUp,
+}
+
 pub enum LoginMessage {
     SignUp,
     Login,
+    Loading(LoadingState),
     Fetch(LoginFetchState),
     ChangeUsername(String),
     ChangePassword(String),
@@ -37,6 +43,7 @@ pub struct LoginApp {
     props: LoginAppProps,
     state: FormState,
     link: ComponentLink<Self>,
+    is_loading: bool,
 }
 
 impl Component for LoginApp {
@@ -52,12 +59,23 @@ impl Component for LoginApp {
                 is_sign_up: false,
             },
             link,
+            is_loading: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
             LoginMessage::SignUp => {
+                self.is_loading = true;
+                self.link
+                    .send_message(LoginMessage::Loading(LoadingState::SignUp));
+            }
+            LoginMessage::Login => {
+                self.is_loading = true;
+                self.link
+                    .send_message(LoginMessage::Loading(LoadingState::Login));
+            }
+            LoginMessage::Loading(LoadingState::SignUp) => {
                 let username = self.state.username.to_owned();
                 let password = self.state.password.to_owned();
                 self.link.send_future(async move {
@@ -67,7 +85,7 @@ impl Component for LoginApp {
                     }
                 })
             }
-            LoginMessage::Login => {
+            LoginMessage::Loading(LoadingState::Login) => {
                 let username = self.state.username.to_owned();
                 let password = self.state.password.to_owned();
                 self.link.send_future(async move {
@@ -78,6 +96,7 @@ impl Component for LoginApp {
                 })
             }
             LoginMessage::Fetch(LoginFetchState::LoginSuccess(jwt)) => {
+                self.is_loading = false;
                 self.props.app_link.send_message(AppMessage::Authenticated);
             }
             LoginMessage::ChangeUsername(username) => {
@@ -87,6 +106,7 @@ impl Component for LoginApp {
                 self.state.password = password;
             }
             LoginMessage::Fetch(LoginFetchState::Failed(err)) => {
+                self.is_loading = false;
                 if let Some(window) = yew::web_sys::window() {
                     if let Some(msg) = err.err.as_string() {
                         window.alert_with_message(&msg);
@@ -147,13 +167,23 @@ impl LoginApp {
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangePassword(data.value))
                     />
-                    <button type="submit">{"Sign Up"}</button>
+                    <button type="submit" disabled=self.is_loading>
+                        {
+                            if self.is_loading {
+                                html! {
+                                    <i class="fa fa-spinner fa-spin"></i>
+                                }
+                            } else {
+                                html! { "Sign up" }
+                            }
+                        }
+                    </button>
                         <p class="message">{"Do you have already account?"}
                             <a
                                 href="#"
                                 onclick=self.link.callback(|_| LoginMessage::ToggleLogin)
                             >
-                                {"Login"}
+                                { "Login" }
                             </a>
                         </p>
                 </form>
@@ -183,13 +213,23 @@ impl LoginApp {
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangePassword(data.value))
                     />
-                    <button type="submit">{"Login"}</button>
+                    <button type="submit" disabled=self.is_loading>
+                        {
+                            if self.is_loading {
+                                html! {
+                                    <i class="fa fa-spinner fa-spin"></i>
+                                }
+                            } else {
+                                html! { "Login" }
+                            }
+                        }
+                    </button>
                         <p class="message">{"Do you sign up?"}
                             <a
                                 href="#"
                                 onclick=self.link.callback(|_| LoginMessage::ToggleSignUp)
                             >
-                                {"Sing up"}
+                                { "Sign up" }
                             </a>
                         </p>
                 </form>
