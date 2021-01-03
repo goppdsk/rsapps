@@ -96,11 +96,17 @@ impl Component for LoginApp {
 
     fn view(&self) -> Html {
         html! {
-            if self.state.is_sign_up {
-                {self.render_sing_up()}
-            } else {
-                {self.render_login()}
-            }
+            <div class="login-page">
+                <div class="login-form">
+                    {
+                        if self.state.is_sign_up {
+                            {self.render_sing_up()}
+                        } else {
+                            {self.render_login()}
+                        }
+                    }
+                </div>
+            </div>
         }
     }
 }
@@ -114,32 +120,29 @@ impl LoginApp {
                         e.prevent_default();
                         LoginMessage::SignUp
                     })>
-                    <label for="uname"><b>{"Username"}</b></label>
                     <input
                         type="text"
-                        placeholder="Enter Username"
+                        placeholder="username"
                         name="uname"
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangeUsername(data.value))
                     />
-                    <label for="psw"><b>{"Password"}</b></label>
                     <input
                         type="password"
-                        placeholder="Enter Password"
+                        placeholder="password"
                         name="psw"
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangePassword(data.value))
                     />
                     <button type="submit">{"Sign Up"}</button>
-                    <div>
-                        <span>{"Do you have already account?"}</span>
-                        <a
-                            href="#"
-                            onclick=self.link.callback(|_| LoginMessage::ToggleLogin)
-                        >
-                            {"Login"}
-                        </a>
-                    </div>
+                        <p class="message">{"Do you have already account?"}
+                            <a
+                                href="#"
+                                onclick=self.link.callback(|_| LoginMessage::ToggleLogin)
+                            >
+                                {"Login"}
+                            </a>
+                        </p>
                 </form>
             </div>
         }
@@ -153,32 +156,29 @@ impl LoginApp {
                         e.prevent_default();
                         LoginMessage::Login
                     })>
-                    <label for="uname"><b>{"Username"}</b></label>
                     <input
                         type="text"
-                        placeholder="Enter Username"
+                        placeholder="username"
                         name="uname"
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangeUsername(data.value))
                     />
-                    <label for="psw"><b>{"Password"}</b></label>
                     <input
                         type="password"
-                        placeholder="Enter Password"
+                        placeholder="password"
                         name="psw"
                         required=true
                         oninput=self.link.callback(|data: InputData| LoginMessage::ChangePassword(data.value))
                     />
                     <button type="submit">{"Login"}</button>
-                    <div>
-                        <span>{"Do you sign up?"}</span>
-                        <a
-                            href="#"
-                            onclick=self.link.callback(|_| LoginMessage::ToggleSignUp)
-                        >
-                            {"Sing up"}
-                        </a>
-                    </div>
+                        <p class="message">{"Do you sign up?"}
+                            <a
+                                href="#"
+                                onclick=self.link.callback(|_| LoginMessage::ToggleSignUp)
+                            >
+                                {"Sing up"}
+                            </a>
+                        </p>
                 </form>
             </div>
         }
