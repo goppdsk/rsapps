@@ -26,6 +26,7 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgres://postgres:P@ssw0rd!@rsapps_postgres:5432/rsapps
+      JWT_SECRET: jwtsecret
     ports:
       - 8081:8081
     restart: unless-stopped
