@@ -1,3 +1,4 @@
+use crate::auth::create_jwt;
 use crate::domains::entities::todo::Todo;
 use crate::State;
 use juniper::{FieldResult, IntoFieldError};
@@ -16,19 +17,22 @@ struct UpdatedTodo {
     complete: bool,
 }
 
+#[derive(juniper::GraphQLInputObject)]
+struct NewUser {
+    username: String,
+    password: String,
+}
+
 #[graphql_object(Context = State)]
 impl MutationRoot {
     #[graphql(description = "Create new todo")]
     async fn create_todo(context: &State, new_todo: NewTodo) -> FieldResult<Todo> {
-        let now = chrono::Utc::now();
-        let todo = Todo {
-            id: 0,
-            body: new_todo.body,
-            complete: false,
-            created_at: now,
-            updated_at: now,
-        };
-        match context.todo_service.clone().create_todo(todo).await {
+        match context
+            .todo_service
+            .clone()
+            .create_todo(new_todo.body)
+            .await
+        {
             Ok(created) => Ok(created),
             Err(err) => Err(err.into_field_error()),
         }
@@ -36,15 +40,12 @@ impl MutationRoot {
 
     #[graphql(description = "Update todo")]
     async fn update_todo(context: &State, updated_todo: UpdatedTodo) -> FieldResult<Todo> {
-        let now = chrono::Utc::now();
-        let todo = Todo {
-            id: updated_todo.id,
-            body: updated_todo.body,
-            complete: updated_todo.complete,
-            created_at: now,
-            updated_at: now,
-        };
-        match context.todo_service.clone().update_todo(todo).await {
+        match context
+            .todo_service
+            .clone()
+            .update_todo(updated_todo.id, updated_todo.body, updated_todo.complete)
+            .await
+        {
             Ok(updatde) => Ok(updatde),
             Err(err) => Err(err.into_field_error()),
         }
@@ -78,6 +79,23 @@ impl MutationRoot {
     async fn clear_completed_todo(context: &State) -> FieldResult<bool> {
         match context.todo_service.clone().clear_completed_todo().await {
             Ok(ret) => Ok(ret),
+            Err(err) => Err(err.into_field_error()),
+        }
+    }
+
+    #[graphql(name = "signUp", description = "Sign up user")]
+    async fn sing_up(context: &State, new_user: NewUser) -> FieldResult<String> {
+        let user = match context
+            .user_service
+            .clone()
+            .sign_up(new_user.username, new_user.password)
+            .await
+        {
+            Ok(created) => created,
+            Err(err) => return Err(err.into_field_error()),
+        };
+        match create_jwt(user.id) {
+            Ok(jwt) => Ok(jwt),
             Err(err) => Err(err.into_field_error()),
         }
     }

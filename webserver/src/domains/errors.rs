@@ -4,6 +4,7 @@ pub enum ErrorCode {
     NoAuthHeaderError,
     JWTTokenCreationError,
     NotFound,
+    Conflict,
     SystemError,
 }
 

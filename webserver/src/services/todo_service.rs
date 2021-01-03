@@ -25,7 +25,15 @@ impl TodoService {
         }
     }
 
-    pub async fn create_todo(&self, todo: Todo) -> ApplicationResult<Todo> {
+    pub async fn create_todo(&self, body: String) -> ApplicationResult<Todo> {
+        let now = chrono::Utc::now();
+        let todo = Todo {
+            id: 0,
+            body,
+            complete: false,
+            created_at: now,
+            updated_at: now,
+        };
         match self.todo_repository.create_todo(todo).await {
             Ok(created) => Ok(created),
             Err(err) => Err(ApplicationError {
@@ -35,7 +43,20 @@ impl TodoService {
         }
     }
 
-    pub async fn update_todo(&self, todo: Todo) -> ApplicationResult<Todo> {
+    pub async fn update_todo(
+        &self,
+        id: i32,
+        body: String,
+        complete: bool,
+    ) -> ApplicationResult<Todo> {
+        let now = chrono::Utc::now();
+        let todo = Todo {
+            id,
+            body,
+            complete,
+            created_at: now,
+            updated_at: now,
+        };
         match self.todo_repository.update_todo(todo).await {
             Ok(updated) => Ok(updated),
             Err(err) => Err(ApplicationError {

@@ -48,4 +48,36 @@ WHERE email = $1
         .fetch_optional(&self.db)
         .await?)
     }
+
+    async fn get_user_by_username(&self, username: String) -> anyhow::Result<Option<User>> {
+        Ok(sqlx::query_as!(
+            User,
+            "
+SELECT *
+FROM users
+WHERE username = $1
+            ",
+            username
+        )
+        .fetch_optional(&self.db)
+        .await?)
+    }
+
+    async fn create_user(&self, user: User) -> anyhow::Result<User> {
+        Ok(sqlx::query_as!(
+            User,
+            "
+INSERT INTO users (username, email, password_hash, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+returning *
+            ",
+            user.username,
+            user.email,
+            user.password_hash,
+            user.created_at,
+            user.updated_at,
+        )
+        .fetch_one(&self.db)
+        .await?)
+    }
 }

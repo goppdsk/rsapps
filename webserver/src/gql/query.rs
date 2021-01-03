@@ -21,12 +21,12 @@ impl QueryRoot {
         }
     }
 
-    #[graphql(name = "idLogin", description = "User login with id")]
-    async fn login_with_id(context: &State, id: i32, password: String) -> FieldResult<String> {
+    #[graphql(name = "login", description = "User login")]
+    async fn login(context: &State, username: String, password: String) -> FieldResult<String> {
         let user = match context
             .user_service
             .clone()
-            .get_user_by_id(id, password)
+            .get_user_by_username(username, password)
             .await
         {
             Ok(user) => user,
