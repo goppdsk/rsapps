@@ -10,9 +10,10 @@ mod todo;
 mod utils;
 use login::LoginApp;
 use todo::TodoApp;
+use utils::{get_jwt, set_jwt};
 
 pub enum AppMessage {
-    Authenticated,
+    Authenticated(String),
 }
 
 pub struct App {
@@ -25,15 +26,17 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            is_login: false,
-            link,
+        let mut is_login = false;
+        if get_jwt().is_some() {
+            is_login = true;
         }
+        Self { is_login, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
-            AppMessage::Authenticated => {
+            AppMessage::Authenticated(jwt) => {
+                set_jwt(jwt);
                 self.is_login = true;
             }
         }

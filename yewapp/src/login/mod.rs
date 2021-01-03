@@ -97,7 +97,9 @@ impl Component for LoginApp {
             }
             LoginMessage::Fetch(LoginFetchState::LoginSuccess(jwt)) => {
                 self.is_loading = false;
-                self.props.app_link.send_message(AppMessage::Authenticated);
+                self.props
+                    .app_link
+                    .send_message(AppMessage::Authenticated(jwt));
             }
             LoginMessage::ChangeUsername(username) => {
                 self.state.username = username;
@@ -107,10 +109,9 @@ impl Component for LoginApp {
             }
             LoginMessage::Fetch(LoginFetchState::Failed(err)) => {
                 self.is_loading = false;
-                if let Some(window) = yew::web_sys::window() {
-                    if let Some(msg) = err.err.as_string() {
-                        window.alert_with_message(&msg);
-                    }
+                let window = yew::utils::window();
+                if let Some(msg) = err.err.as_string() {
+                    window.alert_with_message(&msg).unwrap();
                 }
             }
             LoginMessage::ToggleLogin => {

@@ -19,6 +19,7 @@ impl Display for FetchError {
 impl Error for FetchError {}
 
 pub static GRAPHQL_ENDPOINT: &str = std::env!("GRAPHQL_ENDPOINT");
+static JWT_STORAGE_KEY: &str = "rsappsJwt";
 
 pub async fn request<V: serde::Serialize>(
     query: graphql_client::QueryBody<V>,
@@ -42,4 +43,28 @@ pub async fn request<V: serde::Serialize>(
     let resp: Response = resp_value.dyn_into().unwrap();
 
     Ok(JsFuture::from(resp.json()?).await?)
+}
+
+fn get_local_storage() -> Option<web_sys::Storage> {
+    match yew::utils::window().local_storage() {
+        Ok(storage) => storage,
+        Err(_) => None,
+    }
+}
+
+pub fn get_jwt() -> Option<String> {
+    let storage = match get_local_storage() {
+        Some(storage) => storage,
+        None => return None,
+    };
+    match storage.get_item(JWT_STORAGE_KEY) {
+        Ok(jwt) => jwt,
+        Err(_) => None,
+    }
+}
+
+pub fn set_jwt(jwt: String) {
+    if let Some(storage) = get_local_storage() {
+        storage.set_item(JWT_STORAGE_KEY, jwt.as_str()).unwrap();
+    }
 }
