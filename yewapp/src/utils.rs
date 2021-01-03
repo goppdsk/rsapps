@@ -68,3 +68,11 @@ pub fn set_jwt(jwt: String) {
         storage.set_item(JWT_STORAGE_KEY, jwt.as_str()).unwrap();
     }
 }
+
+pub fn logout() {
+    if let Some(storage) = get_local_storage() {
+        storage.remove_item(JWT_STORAGE_KEY).unwrap();
+        let window = yew::utils::window();
+        window.location().set_href("/").unwrap();
+    }
+}

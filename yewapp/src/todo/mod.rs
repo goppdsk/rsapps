@@ -1,6 +1,6 @@
 mod gql;
 
-use crate::utils::FetchError;
+use crate::utils::{logout, FetchError};
 use gql::{
     all_todos, create_new_todo, create_todo, fetch_all_todos, remove_completed_todo, remove_todo,
     toggle_complete_all_todos, toggle_complete_todo, update_todo, update_todo_query,
@@ -52,6 +52,7 @@ pub enum TodoMessage {
     CancelEdit(usize),
     Focus,
     Fetch(TodoFetchState),
+    Logout,
     None,
 }
 
@@ -242,6 +243,9 @@ impl Component for TodoApp {
             TodoMessage::Fetch(TodoFetchState::Failed(err)) => {
                 yew::web_sys::console::log_1(&err.err);
             }
+            TodoMessage::Logout => {
+                logout();
+            }
             TodoMessage::None => return false,
         }
         true
@@ -265,6 +269,7 @@ impl Component for TodoApp {
                     <p>{ "Double-click to edit a todo" }</p>
                     <p>{ "Written by " }<a href="https://github.com/goppdsk/" target="_blank">{ "ここ" }</a></p>
                     <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
+                    <p><a href="#" onclick=self.link.callback(|_| TodoMessage::Logout)>{ "Logout" }</a></p>
                 </footer>
             </div>
         }
