@@ -1,6 +1,6 @@
 use crate::utils::FetchError;
 use crate::{App, AppMessage};
-use gql::sign_up;
+use gql::{login_with_username, sign_up};
 use yew::events::{FocusEvent, InputData};
 use yew::prelude::*;
 use yewtil::future::LinkFuture;
@@ -67,7 +67,16 @@ impl Component for LoginApp {
                     }
                 })
             }
-            LoginMessage::Login => {}
+            LoginMessage::Login => {
+                let username = self.state.username.to_owned();
+                let password = self.state.password.to_owned();
+                self.link.send_future(async move {
+                    match login_with_username(username, password).await {
+                        Ok(jwt) => LoginMessage::Fetch(LoginFetchState::LoginSuccess(jwt)),
+                        Err(err) => LoginMessage::Fetch(LoginFetchState::Failed(err)),
+                    }
+                })
+            }
             LoginMessage::Fetch(LoginFetchState::LoginSuccess(jwt)) => {
                 self.props.app_link.send_message(AppMessage::Authenticated);
             }
@@ -78,7 +87,11 @@ impl Component for LoginApp {
                 self.state.password = password;
             }
             LoginMessage::Fetch(LoginFetchState::Failed(err)) => {
-                yew::web_sys::console::log_1(&err.err);
+                if let Some(window) = yew::web_sys::window() {
+                    if let Some(msg) = err.err.as_string() {
+                        window.alert_with_message(&msg);
+                    }
+                }
             }
             LoginMessage::ToggleLogin => {
                 self.state.is_sign_up = false;
