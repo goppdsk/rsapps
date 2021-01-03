@@ -132,13 +132,7 @@ impl Component for LoginApp {
         html! {
             <div class="login-page">
                 <div class="login-form">
-                    {
-                        if self.state.is_sign_up {
-                            {self.render_sing_up()}
-                        } else {
-                            {self.render_login()}
-                        }
-                    }
+                    {self.render_login()}
                 </div>
             </div>
         }
@@ -146,13 +140,18 @@ impl Component for LoginApp {
 }
 
 impl LoginApp {
-    fn render_sing_up(&self) -> Html {
+    fn render_login(&self) -> Html {
+        let is_sign_up = self.state.is_sign_up;
         html! {
             <div>
                 <form
-                    onsubmit=self.link.callback(|e: FocusEvent| {
+                    onsubmit=self.link.callback(move |e: FocusEvent| {
                         e.prevent_default();
-                        LoginMessage::SignUp
+                        if is_sign_up {
+                            LoginMessage::SignUp
+                        } else {
+                            LoginMessage::Login
+                        }
                     })>
                     <input
                         type="text"
@@ -175,62 +174,20 @@ impl LoginApp {
                                     <i class="fa fa-spinner fa-spin"></i>
                                 }
                             } else {
-                                html! { "Sign up" }
+                                html! { if is_sign_up { "Sign up" } else { "Login "} }
                             }
                         }
                     </button>
                         <p class="message">{"Do you have already account?"}
                             <a
                                 href="#"
-                                onclick=self.link.callback(|_| LoginMessage::ToggleLogin)
+                                onclick=self.link.callback(move |_| if is_sign_up {
+                                    LoginMessage::ToggleLogin
+                                } else {
+                                    LoginMessage::ToggleSignUp
+                                })
                             >
-                                { "Login" }
-                            </a>
-                        </p>
-                </form>
-            </div>
-        }
-    }
-
-    fn render_login(&self) -> Html {
-        html! {
-            <div>
-                <form
-                    onsubmit=self.link.callback(|e: FocusEvent| {
-                        e.prevent_default();
-                        LoginMessage::Login
-                    })>
-                    <input
-                        type="text"
-                        placeholder="username"
-                        name="uname"
-                        required=true
-                        oninput=self.link.callback(|data: InputData| LoginMessage::ChangeUsername(data.value))
-                    />
-                    <input
-                        type="password"
-                        placeholder="password"
-                        name="psw"
-                        required=true
-                        oninput=self.link.callback(|data: InputData| LoginMessage::ChangePassword(data.value))
-                    />
-                    <button type="submit" disabled=self.is_loading>
-                        {
-                            if self.is_loading {
-                                html! {
-                                    <i class="fa fa-spinner fa-spin"></i>
-                                }
-                            } else {
-                                html! { "Login" }
-                            }
-                        }
-                    </button>
-                        <p class="message">{"Do you sign up?"}
-                            <a
-                                href="#"
-                                onclick=self.link.callback(|_| LoginMessage::ToggleSignUp)
-                            >
-                                { "Sign up" }
+                                { if is_sign_up { "Login" } else { "Sign up" } }
                             </a>
                         </p>
                 </form>
