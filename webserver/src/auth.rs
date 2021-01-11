@@ -10,8 +10,8 @@ use tide::http::headers::HeaderValues;
 /// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    sub: String,
-    exp: usize,
+    pub sub: String,
+    pub exp: usize,
 }
 
 const BEARER: &str = "Bearer";

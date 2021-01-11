@@ -5,4 +5,5 @@ pub struct Todo {
     pub complete: bool,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub user_id: i32,
 }
