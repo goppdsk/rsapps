@@ -16,8 +16,8 @@ impl TodoService {
             todo_repository: di_container.todo_repository(),
         }
     }
-    pub async fn get_all_todos(&self) -> ApplicationResult<Vec<Todo>> {
-        match self.todo_repository.get_all_todos().await {
+    pub async fn get_all_todos(&self, user_id: i32) -> ApplicationResult<Vec<Todo>> {
+        match self.todo_repository.get_all_todos(user_id).await {
             Ok(todos) => Ok(todos),
             Err(err) => Err(ApplicationError {
                 code: ErrorCode::SystemError,
@@ -26,7 +26,7 @@ impl TodoService {
         }
     }
 
-    pub async fn create_todo(&self, body: String) -> ApplicationResult<Todo> {
+    pub async fn create_todo(&self, body: String, user_id: i32) -> ApplicationResult<Todo> {
         let now = chrono::Utc::now();
         let todo = Todo {
             id: 0,
@@ -34,6 +34,7 @@ impl TodoService {
             complete: false,
             created_at: now,
             updated_at: now,
+            user_id,
         };
         match self.todo_repository.create_todo(todo).await {
             Ok(created) => Ok(created),
@@ -50,14 +51,27 @@ impl TodoService {
         body: String,
         complete: bool,
     ) -> ApplicationResult<Todo> {
-        let now = chrono::Utc::now();
-        let todo = Todo {
-            id,
-            body,
-            complete,
-            created_at: now,
-            updated_at: now,
+        let mut todo = match self.todo_repository.get_todo_by_id(id).await {
+            Ok(ret) => match ret {
+                Some(t) => t,
+                None => {
+                    return Err(ApplicationError {
+                        code: ErrorCode::NotFound,
+                        message: format!("todo is not found, id: {}", id),
+                    });
+                }
+            },
+            Err(err) => {
+                return Err(ApplicationError {
+                    code: ErrorCode::SystemError,
+                    message: format!("failed to create todo, error: {:}", err),
+                });
+            }
         };
+        let now = chrono::Utc::now();
+        todo.body = body;
+        todo.complete = complete;
+        todo.updated_at = now;
         match self.todo_repository.update_todo(todo).await {
             Ok(updated) => Ok(updated),
             Err(err) => Err(ApplicationError {

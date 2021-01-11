@@ -4,7 +4,9 @@ use dyn_clone::DynClone;
 
 #[async_trait]
 pub trait TodoRepository: DynClone {
-    async fn get_all_todos(&self) -> anyhow::Result<Vec<Todo>>;
+    async fn get_all_todos(&self, user_id: i32) -> anyhow::Result<Vec<Todo>>;
+
+    async fn get_todo_by_id(&self, id: i32) -> anyhow::Result<Option<Todo>>;
 
     async fn create_todo(&self, todo: Todo) -> anyhow::Result<Todo>;
 

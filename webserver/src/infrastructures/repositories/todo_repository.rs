@@ -9,15 +9,31 @@ pub struct PostgreSQLTodoRepository {
 
 #[async_trait]
 impl TodoRepository for PostgreSQLTodoRepository {
-    async fn get_all_todos(&self) -> anyhow::Result<Vec<Todo>> {
+    async fn get_all_todos(&self, user_id: i32) -> anyhow::Result<Vec<Todo>> {
         Ok(sqlx::query_as!(
             Todo,
             "
 SELECT *
 FROM todos
-            "
+WHERE user_id = $1
+            ",
+            user_id
         )
         .fetch_all(&self.db)
+        .await?)
+    }
+
+    async fn get_todo_by_id(&self, id: i32) -> anyhow::Result<Option<Todo>> {
+        Ok(sqlx::query_as!(
+            Todo,
+            "
+SELECT *
+FROM todos
+WHERE id = $1
+            ",
+            id
+        )
+        .fetch_optional(&self.db)
         .await?)
     }
 
@@ -25,14 +41,15 @@ FROM todos
         Ok(sqlx::query_as!(
             Todo,
             "
-INSERT INTO todos (body, complete, created_at, updated_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO todos (body, complete, created_at, updated_at, user_id)
+VALUES ($1, $2, $3, $4, $5)
 returning *
             ",
             todo.body,
             todo.complete,
             todo.created_at,
             todo.updated_at,
+            todo.user_id,
         )
         .fetch_one(&self.db)
         .await?)

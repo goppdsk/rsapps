@@ -1,5 +1,55 @@
 {
   "db": "PostgreSQL",
+  "049d7716d185488258236c64982e2b99062d6143f14eddc52ff7669600f6d999": {
+    "query": "\nSELECT *\nFROM todos\nWHERE id = $1\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "1f412bf04e55df3bda019495d737027ac5a41dbb049ce72961fd9a364737e6aa": {
     "query": "\nSELECT *\nFROM users\nWHERE id = $1\n            ",
     "describe": {
@@ -108,8 +158,8 @@
       "nullable": []
     }
   },
-  "6db00b5d458d21f0a1b071c17d906c2805c21c770dcb33fdbdaed9bda4a128ea": {
-    "query": "\nSELECT *\nFROM todos\n            ",
+  "48c057cb3f28fd2c2e4c7ea46ac5e16b31604c3b6e9b85fdcfdb2b069861e929": {
+    "query": "\nSELECT *\nFROM todos\nWHERE user_id = $1\n            ",
     "describe": {
       "columns": [
         {
@@ -136,12 +186,74 @@
           "ordinal": 4,
           "name": "updated_at",
           "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_id",
+          "type_info": "Int4"
         }
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Int4"
+        ]
       },
       "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "6330031a21fed09e9cbee7f0279e59b61237e9a461e1459f40ae7baa51f4e027": {
+    "query": "\nINSERT INTO todos (body, complete, created_at, updated_at, user_id)\nVALUES ($1, $2, $3, $4, $5)\nreturning *\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bool",
+          "Timestamptz",
+          "Timestamptz",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
         false,
         false,
         false,
@@ -190,6 +302,11 @@
           "ordinal": 4,
           "name": "updated_at",
           "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_id",
+          "type_info": "Int4"
         }
       ],
       "parameters": {
@@ -201,6 +318,7 @@
         ]
       },
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -219,53 +337,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "bf7bdaaffd22a2c100d89772aedc2aa84fe2698802b9b1fce9c5fd2f8bcc8b53": {
-    "query": "\nINSERT INTO todos (body, complete, created_at, updated_at)\nVALUES ($1, $2, $3, $4)\nreturning *\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "body",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 2,
-          "name": "complete",
-          "type_info": "Bool"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Bool",
-          "Timestamptz",
-          "Timestamptz"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
     }
   },
   "c7f32f6eb8b2442882e3f323198df5981b42e6b4d1ebae276f0c7d25f8ca5233": {

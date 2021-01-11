@@ -3,7 +3,8 @@ pub(crate) mod query;
 pub(crate) mod todo_resolver;
 pub(crate) mod user_resolver;
 
-use crate::domains::errors::ApplicationError;
+use crate::auth;
+use crate::domains::errors::{ApplicationError, ErrorCode};
 use crate::gql::mutation::MutationRoot;
 use crate::gql::query::QueryRoot;
 use crate::State;
@@ -26,17 +27,50 @@ impl<S: ScalarValue> IntoFieldError<S> for ApplicationError {
     }
 }
 
-impl Context for State {}
+pub struct GraphQLContext {
+    state: State,
+    user_id: i32,
+}
 
-type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<State>>;
+impl Context for GraphQLContext {}
+
+type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<GraphQLContext>>;
 lazy_static! {
     static ref SCHEMA: Schema =
         Schema::new(QueryRoot {}, MutationRoot {}, EmptySubscription::new());
 }
 
-pub async fn handle_graphql(mut request: Request<State>) -> tide::Result {
+pub async fn handle_graphql(mut request: Request<State>) -> tide::Result<impl Into<Response>> {
     let query: GraphQLRequest = request.body_json().await?;
-    let response: GraphQLResponse = query.execute(&SCHEMA, request.state()).await;
+    let mut user_id = 0;
+    if let Some(op) = query.operation_name() {
+        if op != "SignUpUser" && op != "Login" && op != "IntrospectionQuery" {
+            let claim =
+                match auth::get_jwt_claims(request.header(tide::http::headers::AUTHORIZATION)) {
+                    Ok(c) => c,
+                    Err(err) => {
+                        println!("failed to get claim, err: {:}", err);
+                        return Ok(Response::builder(StatusCode::Unauthorized)
+                            .body(Body::from_json(&err)?)
+                            .build());
+                    }
+                };
+            user_id = claim.sub.parse::<i32>().unwrap();
+        }
+    } else {
+        return Ok(Response::builder(StatusCode::BadRequest)
+            .body(Body::from_json(&ApplicationError {
+                code: ErrorCode::OperationNameIsNotDefined,
+                message: "GraphQL operation name is not defined".to_owned(),
+            })?)
+            .build());
+    }
+
+    let gql_ctx = GraphQLContext {
+        state: request.state().clone(),
+        user_id,
+    };
+    let response: GraphQLResponse = query.execute(&SCHEMA, &gql_ctx).await;
     let status = if response.is_ok() {
         StatusCode::Ok
     } else {

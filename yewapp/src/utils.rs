@@ -25,8 +25,10 @@ pub async fn request<V: serde::Serialize>(
     query: graphql_client::QueryBody<V>,
 ) -> Result<JsValue, FetchError> {
     let json_body = json!(query);
+    let jwt = get_jwt().unwrap_or(String::from(""));
     let headers = match JsValue::from_serde(&json!({
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": format!("Bearer {}", jwt),
     })) {
         Ok(headers) => headers,
         Err(_) => JsValue::NULL,
