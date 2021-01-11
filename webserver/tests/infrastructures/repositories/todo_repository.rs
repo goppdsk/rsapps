@@ -7,5 +7,5 @@ use sqlx::Postgres;
 async fn test_get_all_todos() {
     let db = get_db::<Postgres>().await.unwrap();
     let repository = PostgreSQLTodoRepository { db };
-    assert_eq!(0, repository.get_all_todos().await.unwrap().len());
+    assert_eq!(0, repository.get_all_todos(1).await.unwrap().len());
 }

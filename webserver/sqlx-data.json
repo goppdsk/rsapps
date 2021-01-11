@@ -208,6 +208,60 @@
       ]
     }
   },
+  "6330031a21fed09e9cbee7f0279e59b61237e9a461e1459f40ae7baa51f4e027": {
+    "query": "\nINSERT INTO todos (body, complete, created_at, updated_at, user_id)\nVALUES ($1, $2, $3, $4, $5)\nreturning *\n            ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "body",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "complete",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated_at",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "user_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bool",
+          "Timestamptz",
+          "Timestamptz",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "7a877deef296b08c3010a7c6c98e04d4336383186843f29518a0563b0f9df4c5": {
     "query": "\nUPDATE todos\nSET complete = not complete, updated_at = $1\n            ",
     "describe": {
@@ -283,59 +337,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "bf7bdaaffd22a2c100d89772aedc2aa84fe2698802b9b1fce9c5fd2f8bcc8b53": {
-    "query": "\nINSERT INTO todos (body, complete, created_at, updated_at)\nVALUES ($1, $2, $3, $4)\nreturning *\n            ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "body",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 2,
-          "name": "complete",
-          "type_info": "Bool"
-        },
-        {
-          "ordinal": 3,
-          "name": "created_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated_at",
-          "type_info": "Timestamptz"
-        },
-        {
-          "ordinal": 5,
-          "name": "user_id",
-          "type_info": "Int4"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Bool",
-          "Timestamptz",
-          "Timestamptz"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
     }
   },
   "c7f32f6eb8b2442882e3f323198df5981b42e6b4d1ebae276f0c7d25f8ca5233": {

@@ -41,14 +41,15 @@ WHERE id = $1
         Ok(sqlx::query_as!(
             Todo,
             "
-INSERT INTO todos (body, complete, created_at, updated_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO todos (body, complete, created_at, updated_at, user_id)
+VALUES ($1, $2, $3, $4, $5)
 returning *
             ",
             todo.body,
             todo.complete,
             todo.created_at,
             todo.updated_at,
+            todo.user_id,
         )
         .fetch_one(&self.db)
         .await?)

@@ -67,14 +67,14 @@ pub fn get_jwt_claims(headers: Option<&HeaderValues>) -> ApplicationResult<Claim
         });
     }
     match decode::<Claims>(
-        auth_header.trim_start_matches(BEARER),
+        auth_header.trim_start_matches(BEARER).trim(),
         &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
-        &Validation::default(),
+        &Validation::new(Algorithm::HS512),
     ) {
         Ok(claims) => Ok(claims.claims),
-        Err(_) => Err(ApplicationError {
+        Err(err) => Err(ApplicationError {
             code: ErrorCode::UnAuthenticated,
-            message: "token is invalid".to_owned(),
+            message: format!("token is invalid, err: {:}", err),
         }),
     }
 }
