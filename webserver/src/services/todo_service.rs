@@ -3,6 +3,7 @@ use crate::domains::errors::{ApplicationError, ErrorCode};
 use crate::domains::repositories::todo_repository::TodoRepository;
 use crate::domains::ApplicationResult;
 use crate::infrastructures::di_container::DIContainer;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct TodoService {
@@ -10,7 +11,7 @@ pub struct TodoService {
 }
 
 impl TodoService {
-    pub fn new(di_container: &dyn DIContainer) -> Self {
+    pub fn new(di_container: Arc<dyn DIContainer>) -> Self {
         Self {
             todo_repository: di_container.todo_repository(),
         }

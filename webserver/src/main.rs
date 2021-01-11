@@ -35,8 +35,8 @@ async fn bootstrap(db_connections: &str) -> anyhow::Result<Server<State>> {
         .allow_origin(Origin::from("*"))
         .allow_credentials(false);
     let mut app = Server::with_state(State {
-        user_service: UserService::new(di_container.as_ref()),
-        todo_service: TodoService::new(di_container.as_ref()),
+        user_service: UserService::new(di_container.clone()),
+        todo_service: TodoService::new(di_container.clone()),
     });
     app.with(cors);
     app.at("/").get(Redirect::permanent("/graphiql"));
